@@ -61,4 +61,36 @@ export const DeckService = {
       conn.release();
     }
   },
+  async update(deckId, userId, payload) {
+    const conn = await db.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      // 1. update scalar fields
+      await DeckModel.update(deckId, userId, payload);
+
+      // 2. replace snippets if provided
+      if (payload.snippets) {
+        await conn.query("DELETE FROM dotdeck_code_snippet WHERE deck_id = ?", [
+          deckId,
+        ]);
+        for (const [idx, s] of payload.snippets.entries()) {
+          await conn.query(
+            `INSERT INTO dotdeck_code_snippet
+               (deck_id, language, caption, code, sort_order)
+             VALUES (?,?,?,?,?)`,
+            [deckId, s.language, s.caption, s.code, idx],
+          );
+        }
+      }
+
+      await conn.commit();
+      return true;
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+  },
 };

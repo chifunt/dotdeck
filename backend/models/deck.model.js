@@ -37,7 +37,8 @@ export const DeckModel = {
       `SELECT d.*, u.username
        FROM dotdeck_deck d
        JOIN dotdeck_user u ON u.id = d.user_id
-       ${filterSql ? "WHERE 1=1" + filterSql : ""}
+       WHERE d.deleted_at IS NULL
+       ${filterSql ? filterSql : ""}
        ORDER BY d.created_at DESC
        LIMIT ? OFFSET ?`,
       params,
@@ -51,7 +52,7 @@ export const DeckModel = {
       `SELECT d.*, u.username
        FROM dotdeck_deck d
        JOIN dotdeck_user u ON u.id = d.user_id
-       WHERE d.id = ?`,
+       WHERE d.id = ? AND d.deleted_at IS NULL`,
       [id],
     );
     return deck;
@@ -60,6 +61,48 @@ export const DeckModel = {
   async delete(id, userId) {
     const [r] = await db.query(
       "DELETE FROM dotdeck_deck WHERE id = ? AND user_id = ?",
+      [id, userId],
+    );
+    return r.affectedRows === 1;
+  },
+
+  async update(id, userId, fields) {
+    const sets = [];
+    const vals = [];
+    if (fields.title) {
+      sets.push("title = ?");
+      vals.push(fields.title);
+    }
+    if (fields.description) {
+      sets.push("description = ?");
+      vals.push(fields.description);
+    }
+    if (fields.thumbnailUrl) {
+      sets.push("thumbnail_url = ?");
+      vals.push(fields.thumbnailUrl);
+    }
+    if (fields.snippets) {
+      /* handled in service ↓ */
+    }
+
+    if (!sets.length && !fields.snippets) return false;
+
+    if (sets.length) {
+      vals.push(id, userId);
+      await db.query(
+        `UPDATE dotdeck_deck SET ${sets.join(", ")}, updated_at = NOW()
+         WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
+        vals,
+      );
+    }
+    return true;
+  },
+
+  async softDelete(id, userId) {
+    const [r] = await db.query(
+      `UPDATE dotdeck_deck
+         SET deleted_at = NOW()
+       WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
       [id, userId],
     );
     return r.affectedRows === 1;

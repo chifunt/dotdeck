@@ -34,9 +34,18 @@ export const DeckController = {
     }
   },
 
+  edit: async (req, res, next) => {
+    try {
+      await DeckService.update(req.params.id, req.user.id, req.body);
+      res.status(204).end();
+    } catch (err) {
+      next(err);
+    }
+  },
+
   remove: async (req, res, next) => {
     try {
-      const ok = await DeckModel.delete(req.params.id, req.user.id);
+      const ok = await DeckModel.softDelete(req.params.id, req.user.id);
       res.status(ok ? 204 : 404).end();
     } catch (err) {
       next(err);
