@@ -46,11 +46,29 @@
  *       200: { description: Totals object }
  */
 
+/**
+ * @swagger
+ * /decks/{id}/ratings:
+ *   delete:
+ *     summary: Remove my vote
+ *     security: [ bearerAuth: [] ]
+ *     tags: [Ratings]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       204: { description: Vote removed }
+ *       404: { description: No existing vote }
+ */
+
 import { Router } from "express";
 import { authRequired } from "../middleware/auth.middleware.js";
 import { RatingController } from "../controllers/rating.controller.js";
 
 export const ratingRouter = Router({ mergeParams: true }); // inherit :id
 
-ratingRouter.post("/", authRequired, RatingController.vote); // vote
+ratingRouter.post("/", authRequired, RatingController.vote); // vote 👍👎
 ratingRouter.get("/", RatingController.totals); // totals
+ratingRouter.delete("/", authRequired, RatingController.unvote); // 🚫

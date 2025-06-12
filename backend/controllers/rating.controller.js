@@ -26,4 +26,13 @@ export const RatingController = {
       next(err);
     }
   },
+
+  async unvote(req, res, next) {
+    try {
+      const ok = await RatingModel.remove(req.user.id, req.params.id);
+      res.status(ok ? 204 : 404).end();
+    } catch (err) {
+      next(err);
+    }
+  },
 };
