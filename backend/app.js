@@ -12,6 +12,7 @@ import { json } from "express";
 import { authRouter } from "./routes/auth.routes.js";
 import { deckRouter } from "./routes/deck.routes.js";
 import { tagRouter } from "./routes/tag.routes.js";
+import { meRouter } from "./routes/user.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
@@ -30,6 +31,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/auth", authRouter);
 app.use("/decks", deckRouter);
 app.use("/tags", tagRouter);
+app.use("/me", meRouter);
 
 // Swagger
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

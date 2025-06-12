@@ -6,7 +6,7 @@
  * @swagger
  * tags:
  *   name: Decks
- *   description: Create, list, view & delete decks
+ *   description: Create, list, update, view & delete decks
  */
 
 /**
@@ -56,7 +56,7 @@
  *       404: { description: Not found }
  *
  *   delete:
- *     summary: Delete own deck
+ *     summary: Delete own deck (soft delete)
  *     security: [ bearerAuth: [] ]
  *     tags: [Decks]
  *     parameters:
@@ -88,6 +88,28 @@
  *                 format: binary
  *     responses:
  *       200: { description: URL where the file is served }
+ */
+
+/**
+ * @swagger
+ * /decks/{id}:
+ *   patch:
+ *     summary: Update a deck
+ *     security: [ bearerAuth: [] ]
+ *     tags: [Decks]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/DeckCreate'
+ *     responses:
+ *       204: { description: Updated }
  */
 
 /**
@@ -159,3 +181,15 @@ deckRouter.use("/:id/ratings", ratingRouter);
 deckRouter.use("/:id/comments", commentRouter);
 
 deckRouter.delete("/:id", authRequired, DeckController.remove);
+
+deckRouter.patch(
+  "/:id",
+  authRequired,
+  validate([
+    body("title").optional().isString().isLength({ min: 3 }),
+    body("description").optional().isString(),
+    body("thumbnailUrl").optional().isURL(),
+    body("snippets").optional().isArray({ min: 1 }),
+  ]),
+  DeckController.edit,
+);
