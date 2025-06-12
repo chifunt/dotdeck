@@ -28,4 +28,16 @@ export const CommentController = {
       next(err);
     }
   },
+
+  async remove(req, res, next) {
+    try {
+      const ok = await CommentModel.softDelete(
+        req.params.commentId,
+        req.user.id,
+      );
+      res.status(ok ? 204 : 404).end();
+    } catch (err) {
+      next(err);
+    }
+  },
 };
