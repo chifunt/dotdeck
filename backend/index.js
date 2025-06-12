@@ -1,6 +1,7 @@
-require("dotenv").config(); // Loads variables from backend/.env
+import dotenv from "dotenv";
+import app from "./app.js";
 
-const app = require("./app").default.default;
+dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
