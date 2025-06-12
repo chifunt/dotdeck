@@ -24,4 +24,12 @@ export const RatingModel = {
     );
     return row || { upvotes: 0, downvotes: 0 };
   },
+
+  async remove(userId, deckId) {
+    const [r] = await db.query(
+      "DELETE FROM dotdeck_rating WHERE user_id = ? AND deck_id = ?",
+      [userId, deckId],
+    );
+    return r.affectedRows === 1;
+  },
 };
