@@ -114,6 +114,22 @@
 
 /**
  * @swagger
+ * /decks/slug/{slug}:
+ *  get:
+ *    summary: Get a deck by its slug
+ *    tags: [Decks]
+ *    parameters:
+ *      - in: path
+ *        name: slug
+ *        required: true
+ *        schema: { type: string }
+ *    responses:
+ *      200: { description: Deck with metadata }
+ *      404: { description: Not found }
+ */
+
+/**
+ * @swagger
  * components:
  *   schemas:
  *     DeckCreate:
@@ -157,7 +173,8 @@ deckRouter.get(
   DeckController.list,
 );
 
-deckRouter.get("/:id", DeckController.detail);
+deckRouter.get("/:id(\\d+)", DeckController.detail); // numeric id
+deckRouter.get("/slug/:slug", DeckController.detailBySlug); // pretty slug
 
 deckRouter.post(
   "/",
