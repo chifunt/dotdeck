@@ -166,7 +166,21 @@ deckRouter.post(
     body("title").isLength({ min: 3 }),
     body("description").optional().isString(),
     body("thumbnailUrl").optional().isURL(),
-    body("snippets").isArray({ min: 1 }),
+    body("snippets")
+      .isArray({ min: 1 })
+      .withMessage("snippets must be a non-empty array"),
+    // per-item checks ↓
+    body("snippets.*.language")
+      .isString()
+      .bail()
+      .notEmpty()
+      .withMessage("language is required for each snippet"),
+    body("snippets.*.code")
+      .isString()
+      .bail()
+      .notEmpty()
+      .withMessage("code is required for each snippet"),
+    body("snippets.*.caption").optional().isString(),
   ]),
   DeckController.create,
 );
@@ -190,6 +204,13 @@ deckRouter.patch(
     body("description").optional().isString(),
     body("thumbnailUrl").optional().isURL(),
     body("snippets").optional().isArray({ min: 1 }),
+    body("snippets")
+      .optional()
+      .isArray({ min: 1 })
+      .withMessage("snippets, if provided, must be a non-empty array"),
+    body("snippets.*.language").optional().isString().notEmpty(),
+    body("snippets.*.code").optional().isString().notEmpty(),
+    body("snippets.*.caption").optional().isString(),
   ]),
   DeckController.edit,
 );
