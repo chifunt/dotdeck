@@ -34,6 +34,16 @@ export const DeckController = {
     }
   },
 
+  detailBySlug: async (req, res, next) => {
+    try {
+      const deck = await DeckModel.getBySlug(req.params.slug);
+      if (!deck) return res.status(404).json({ message: "Deck not found" });
+      res.json(deck);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   edit: async (req, res, next) => {
     try {
       await DeckService.update(req.params.id, req.user.id, req.body);

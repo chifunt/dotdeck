@@ -18,10 +18,25 @@ export const DeckService = {
     try {
       await conn.beginTransaction();
 
+      const slugBase = slugify(payload.title, { lower: true, strict: true });
+      let slug = slugBase;
+      let i = 0;
+      /* eslint-disable no-await-in-loop */
+      while (true) {
+        const [[row]] = await conn.query(
+          "SELECT 1 FROM dotdeck_deck WHERE slug = ? LIMIT 1",
+          [slug],
+        );
+        if (!row) break;
+        i += 1;
+        slug = `${slugBase}-${i}`;
+      }
+
       const deckId = await DeckModel.create(
         {
           userId,
           title: payload.title,
+          slug,
           description: payload.description,
           thumbnailUrl: payload.thumbnailUrl,
         },
@@ -66,7 +81,23 @@ export const DeckService = {
     try {
       await conn.beginTransaction();
 
-      // 1. update scalar fields
+      // 1. update scalar fields (+new slug if title changed)
+      if (payload.title) {
+        const slugBase = slugify(payload.title, { lower: true, strict: true });
+        let slug = slugBase;
+        let i = 0;
+        while (true) {
+          const [[row]] = await conn.query(
+            "SELECT 1 FROM dotdeck_deck WHERE slug = ? AND id <> ? LIMIT 1",
+            [slug, deckId],
+          );
+          if (!row) break;
+          i += 1;
+          slug = `${slugBase}-${i}`;
+        }
+        payload.slug = slug; // pass to model.update
+      }
+
       await DeckModel.update(deckId, userId, payload);
 
       // 2. replace snippets if provided

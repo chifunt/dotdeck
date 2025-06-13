@@ -8,9 +8,9 @@ export const DeckModel = {
   async create(deck, conn = db) {
     const [r] = await conn.query(
       `INSERT INTO dotdeck_deck
-       (user_id, title, description, thumbnail_url)
-       VALUES (?,?,?,?)`,
-      [deck.userId, deck.title, deck.description, deck.thumbnailUrl],
+        (user_id, title, slug, description, thumbnail_url)
+        VALUES (?,?,?,?,?)`,
+      [deck.userId, deck.title, deck.slug, deck.description, deck.thumbnailUrl],
     );
     return r.insertId;
   },
@@ -81,6 +81,10 @@ export const DeckModel = {
       sets.push("thumbnail_url = ?");
       vals.push(fields.thumbnailUrl);
     }
+    if (fields.slug) {
+      sets.push("slug = ?");
+      vals.push(fields.slug);
+    }
     if (fields.snippets) {
       /* handled in service ↓ */
     }
@@ -106,5 +110,16 @@ export const DeckModel = {
       [id, userId],
     );
     return r.affectedRows === 1;
+  },
+
+  async getBySlug(slug) {
+    const [[deck]] = await db.query(
+      `SELECT d.*, u.username
+         FROM dotdeck_deck d
+         JOIN dotdeck_user u ON u.id = d.user_id
+        WHERE d.slug = ? AND d.deleted_at IS NULL`,
+      [slug],
+    );
+    return deck;
   },
 };
