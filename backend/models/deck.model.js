@@ -17,33 +17,29 @@ export const DeckModel = {
 
   async getAll({ tool, tag, limit = 20, offset = 0 }) {
     const params = [];
-    let filterSql = "";
+    let joinSql = "";
+    let whereSql = "WHERE d.deleted_at IS NULL";
 
-    if (tool) {
-      filterSql +=
-        " JOIN dotdeck_deck_tag dt ON d.id = dt.deck_id JOIN dotdeck_tag t ON t.id = dt.tag_id";
-      filterSql += " AND t.name = ?";
-      params.push(tool);
-    } else if (tag) {
-      filterSql +=
-        " JOIN dotdeck_deck_tag dt ON d.id = dt.deck_id JOIN dotdeck_tag t ON t.id = dt.tag_id";
-      filterSql += " AND t.name = ?";
-      params.push(tag);
+    if (tool || tag) {
+      joinSql = `
+        JOIN dotdeck_deck_tag dt ON d.id = dt.deck_id
+        JOIN dotdeck_tag      t  ON t.id = dt.tag_id`;
+      whereSql += " AND t.name = ?";
+      params.push(tool ?? tag);
     }
 
     params.push(limit, offset);
 
     const [rows] = await db.query(
       `SELECT d.*, u.username
-       FROM dotdeck_deck d
-       JOIN dotdeck_user u ON u.id = d.user_id
-       WHERE d.deleted_at IS NULL
-       ${filterSql ? filterSql : ""}
+         FROM dotdeck_deck d
+         JOIN dotdeck_user u ON u.id = d.user_id
+         ${joinSql}
+         ${whereSql}
        ORDER BY d.created_at DESC
        LIMIT ? OFFSET ?`,
       params,
     );
-
     return rows;
   },
 
