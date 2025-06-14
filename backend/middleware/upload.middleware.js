@@ -35,7 +35,10 @@ const ALLOWED = /^image\/(jpe?g|png|gif|webp)$/;
 const multerUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_SIZE },
-  fileFilter: (_req, file, cb) => cb(null, ALLOWED.test(file.mimetype)),
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED.test(file.mimetype)) return cb(null, true);
+    return cb(new Error("Invalid file type"), false);
+  },
 }).single("image");
 
 /**
