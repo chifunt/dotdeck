@@ -1,66 +1,6 @@
 /**
- * @file /decks/:id/ratings routes.
- */
-
-/**
- * @swagger
- * tags:
- *   name: Ratings
- *   description: Thumbs-up / thumbs-down
- */
-
-/**
- * @swagger
- * /decks/{id}/ratings:
- *   post:
- *     summary: Vote on a deck
- *     security: [ bearerAuth: [] ]
- *     tags: [Ratings]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               score:
- *                 type: integer
- *                 enum: [1,-1]
- *     responses:
- *       200: { description: Vote totals }
- *
- *   get:
- *     summary: Get up/down counts
- *     tags: [Ratings]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *     responses:
- *       200: { description: Totals object }
- */
-
-/**
- * @swagger
- * /decks/{id}/ratings:
- *   delete:
- *     summary: Remove my vote
- *     security: [ bearerAuth: [] ]
- *     tags: [Ratings]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *     responses:
- *       204: { description: Vote removed }
- *       404: { description: No existing vote }
+ * @file /decks/:id/ratings routes – thumbs-up / thumbs-down votes.
+ * @tags Ratings: Thumbs-up / thumbs-down votes
  */
 
 import { Router } from "express";

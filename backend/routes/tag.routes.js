@@ -1,22 +1,6 @@
 /**
- * @file /tags route group.
- */
-
-/**
- * @swagger
- * tags:
- *   name: Tags
- *   description: Public tag list
- */
-
-/**
- * @swagger
- * /tags:
- *   get:
- *     summary: List all tags
- *     tags: [Tags]
- *     responses:
- *       200: { description: Tag array }
+ * @file /tags route-group – public tag listing.
+ * @tags Tags: Public tag list
  */
 
 import { Router } from "express";

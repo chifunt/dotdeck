@@ -1,68 +1,6 @@
 /**
  * @file /admin route-group – full administrative power.
- *
- * @swagger
- * tags:
- *   name: Admin
- *   description: Site-wide administration
- *
- * /admin/users/{id}/ban:
- *   post:
- *     summary: Ban a user permanently
- *     tags: [Admin]
- *     security: [ bearerAuth: [] ]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties: { reason: { type: string } }
- *     responses:
- *       204: { description: Banned }
- *
- *   delete:
- *     summary: Un-ban a user
- *     tags: [Admin]
- *     security: [ bearerAuth: [] ]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *     responses:
- *       204: { description: Unbanned }
- *
- * /admin/tags:
- *   post:
- *     summary: Create a new tag
- *     tags: [Admin]
- *     security: [ bearerAuth: [] ]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [name, tagType]
- *             properties:
- *               name:    { type: string }
- *               tagType: { type: integer, description: FK → dotdeck_tag_type.id }
- *     responses:
- *       201: { description: New tag id }
- *
- * /admin/audit:
- *   get:
- *     summary: Recent audit rows (latest 100)
- *     tags: [Admin]
- *     security: [ bearerAuth: [] ]
- *     responses:
- *       200:
- *         description: Array of audit objects
+ * @tags Admin: Site-wide administration
  */
 
 import { Router } from "express";

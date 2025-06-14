@@ -28,4 +28,9 @@ try {
 }
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`API ready on http://localhost:${PORT}`));
+const BASE = "/api/v1";
+
+app.listen(PORT, () => {
+  console.log(`🚀  API ready on http://localhost:${PORT}${BASE}`);
+  console.log(`📚  Swagger UI  → http://localhost:${PORT}${BASE}/docs`);
+});

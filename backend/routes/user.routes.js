@@ -1,12 +1,6 @@
 /**
- * @swagger
- * /me:
- *   get:
- *     summary: Get current user profile
- *     security: [ bearerAuth: [] ]
- *     tags: [Users]
- *     responses:
- *       200: { description: User object }
+ * @file /me route-group – current user profile.
+ * @tags Users: Current user profile retrieval
  */
 
 import { Router } from "express";

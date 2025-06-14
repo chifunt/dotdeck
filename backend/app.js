@@ -30,18 +30,19 @@ app.use(xssClean());
 app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
 
-// ────────── routes ──────────
-app.use("/auth", authRouter);
-app.use("/decks", bannedGuard, deckRouter);
-app.use("/tags", tagRouter);
-app.use("/me", meRouter);
-app.use("/moderation", bannedGuard, moderationRouter);
-app.use("/admin", bannedGuard, adminRouter);
+// ────────── API v1 namespace ──────────
+const api = express.Router();
+api.use("/auth", authRouter);
+api.use("/decks", bannedGuard, deckRouter);
+api.use("/tags", tagRouter);
+api.use("/me", meRouter);
+api.use("/moderation", bannedGuard, moderationRouter);
+api.use("/admin", bannedGuard, adminRouter);
 
-// Swagger
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Swagger lives inside the same namespace
+api.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.get("/", (_req, res) => res.send("Dotdeck API 🎛️"));
+app.use("/api/v1", api); // ← single mount point
 
 // ────────── 404  ──────────
 app.use((_req, res) => res.status(404).json({ message: "Not found" }));

@@ -1,32 +1,6 @@
 /**
  * @file /moderation route-group – moderator-only tools.
- *
- * @swagger
- * tags:
- *   name: Moderation
- *   description: Endpoints restricted to moderators and admins
- *
- * /moderation/decks/{id}/soft-delete:
- *   patch:
- *     summary: Soft-delete a deck
- *     tags: [Moderation]
- *     security: [ bearerAuth: [] ]
- *     parameters:
- *       - { in: path, name: id, required: true, schema: { type: integer } }
- *     responses:
- *       204: { description: Deleted }
- *       404: { description: Not found }
- *
- * /moderation/comments/{id}/soft-delete:
- *   patch:
- *     summary: Soft-delete a comment
- *     tags: [Moderation]
- *     security: [ bearerAuth: [] ]
- *     parameters:
- *       - { in: path, name: id, required: true, schema: { type: integer } }
- *     responses:
- *       204: { description: Deleted }
- *       404: { description: Not found }
+ * @tags Moderation: Endpoints restricted to moderators and admins
  */
 
 import { Router } from "express";
