@@ -71,6 +71,7 @@ import { adminRequired } from "../middleware/role.middleware.js";
 import { BanService } from "../services/ban.service.js";
 import { TagModel } from "../models/tag.model.js";
 import { Audit } from "../utils/audit.util.js";
+import { db } from "../config/db.js";
 
 export const adminRouter = Router();
 
