@@ -98,7 +98,7 @@ export const DeckService = {
         payload.slug = slug; // pass to model.update
       }
 
-      await DeckModel.update(deckId, userId, payload);
+      await DeckModel.update(deckId, userId, payload, conn);
 
       // 2. replace snippets if provided
       if (payload.snippets) {
