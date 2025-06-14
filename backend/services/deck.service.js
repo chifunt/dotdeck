@@ -32,16 +32,31 @@ export const DeckService = {
         slug = `${slugBase}-${i}`;
       }
 
-      const deckId = await DeckModel.create(
-        {
-          userId,
-          title: payload.title,
-          slug,
-          description: payload.description,
-          thumbnailUrl: payload.thumbnailUrl,
-        },
-        conn,
-      );
+      let deckId;
+      /* eslint-disable no-constant-condition */
+      while (true) {
+        try {
+          deckId = await DeckModel.create(
+            {
+              userId,
+              title: payload.title,
+              slug,
+              description: payload.description,
+              thumbnailUrl: payload.thumbnailUrl,
+            },
+            conn,
+          );
+          break; // ✅ success
+        } catch (e) {
+          if (e.code === "ER_DUP_ENTRY") {
+            // slug collision → try slug-N
+            i += 1;
+            slug = `${slugBase}-${i}`;
+            continue;
+          }
+          throw e; // real error
+        }
+      }
 
       // --- code snippets
       for (const [idx, s] of payload.snippets.entries()) {
