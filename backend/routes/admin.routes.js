@@ -12,7 +12,10 @@
  *     tags: [Admin]
  *     security: [ bearerAuth: [] ]
  *     parameters:
- *       - { in: path, name: id, required: true, schema: { type: integer } }
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
  *     requestBody:
  *       content:
  *         application/json:
@@ -22,13 +25,15 @@
  *     responses:
  *       204: { description: Banned }
  *
- * /admin/users/{id}/ban:
  *   delete:
  *     summary: Un-ban a user
  *     tags: [Admin]
  *     security: [ bearerAuth: [] ]
  *     parameters:
- *       - { in: path, name: id, required: true, schema: { type: integer } }
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
  *     responses:
  *       204: { description: Unbanned }
  *
@@ -46,7 +51,7 @@
  *             required: [name, tagType]
  *             properties:
  *               name:    { type: string }
- *               tagType: { type: integer, description: "FK → dotdeck_tag_type.id" }
+ *               tagType: { type: integer, description: FK → dotdeck_tag_type.id }
  *     responses:
  *       201: { description: New tag id }
  *
