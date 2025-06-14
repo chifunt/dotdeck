@@ -16,8 +16,8 @@ export const RatingModel = {
   async totals(deckId) {
     const [[row]] = await db.query(
       `SELECT
-         SUM(score = 1)  AS upvotes,
-         SUM(score = -1) AS downvotes
+          COALESCE(SUM(score = 1),0)  AS upvotes,
+          COALESCE(SUM(score = -1),0) AS downvotes
        FROM dotdeck_rating
        WHERE deck_id = ?`,
       [deckId],
