@@ -27,11 +27,17 @@ export const CommentModel = {
   },
 
   async softDelete(id, userId) {
+    const params = [id];
+    let whereUser = "";
+    if (userId !== null && userId !== undefined) {
+      whereUser = " AND user_id = ?";
+      params.push(userId);
+    }
     const [r] = await db.query(
       `UPDATE dotdeck_comment
-         SET deleted_at = NOW()
-       WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
-      [id, userId],
+        SET deleted_at = NOW()
+      WHERE id = ?${whereUser} AND deleted_at IS NULL`,
+      params,
     );
     return r.affectedRows === 1;
   },
