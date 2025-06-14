@@ -9,6 +9,9 @@ import { db } from "../config/db.js";
 /** @type {import('express').RequestHandler} */
 export async function bannedGuard(req, res, next) {
   try {
+    // Public / unauthenticated request → just continue.
+    if (!req.user) return next();
+
     const [[row]] = await db.query(
       "SELECT banned_at FROM dotdeck_user WHERE id = ? LIMIT 1",
       [req.user.id],
