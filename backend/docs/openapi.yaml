@@ -1,0 +1,504 @@
+openapi: 3.0.3
+info:
+  title: DotDeck API
+  version: 1.0.0
+servers:
+  - url: /api
+tags:
+  - name: Auth
+    description: Sign‑up & login
+  - name: Decks
+    description: Create, list, update, view & delete decks
+  - name: Comments
+    description: Flat comment threads
+  - name: Ratings
+    description: Thumbs‑up / thumbs‑down votes
+  - name: Tags
+    description: Public tag list
+  - name: Admin
+    description: Site‑wide administration
+  - name: Moderation
+    description: Moderator‑only tools
+  - name: Users
+    description: User profile
+paths:
+  /auth/signup:
+    post:
+      summary: Create a new user account
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password]
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+      responses:
+        "201":
+          description: JWT plus user payload
+        "400":
+          description: Email already in use
+  /auth/login:
+    post:
+      summary: Login and get a JWT
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: JWT plus user payload
+        "400":
+          description: Invalid credentials
+  /decks:
+    get:
+      summary: List decks
+      tags: [Decks]
+      parameters:
+        - in: query
+          name: tag
+          schema:
+            type: string
+          description: Filter by tag name
+        - in: query
+          name: tool
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deck array
+    post:
+      summary: Create a new deck
+      tags: [Decks]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeckCreate"
+      responses:
+        "201":
+          description: Created deck id
+  /decks/{id}:
+    get:
+      summary: Get a single deck
+      tags: [Decks]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deck with metadata
+        "404":
+          description: Not found
+    delete:
+      summary: Delete own deck (soft delete)
+      tags: [Decks]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+    patch:
+      summary: Update a deck
+      tags: [Decks]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeckCreate"
+      responses:
+        "204":
+          description: Updated
+  /decks/slug/{slug}:
+    get:
+      summary: Get a deck by its slug
+      tags: [Decks]
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deck with metadata
+        "404":
+          description: Not found
+  /decks/thumbnail:
+    post:
+      summary: Upload a thumbnail image
+      tags: [Decks]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: URL where the file is served
+  /decks/{id}/ratings:
+    post:
+      summary: Vote on a deck
+      tags: [Ratings]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                score:
+                  type: integer
+                  enum: [1, -1]
+      responses:
+        "200":
+          description: Vote totals
+    get:
+      summary: Get up down counts
+      tags: [Ratings]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Totals object
+    delete:
+      summary: Remove my vote
+      tags: [Ratings]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Vote removed
+        "404":
+          description: No existing vote
+  /decks/{id}/comments:
+    get:
+      summary: List comments for a deck
+      tags: [Comments]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Comment array
+    post:
+      summary: Add a comment
+      tags: [Comments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body:
+                  type: string
+      responses:
+        "201":
+          description: The created comment
+  /decks/{id}/comments/{commentId}:
+    delete:
+      summary: Delete my comment (soft delete)
+      tags: [Comments]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+  /tags:
+    get:
+      summary: List all tags
+      tags: [Tags]
+      responses:
+        "200":
+          description: Tag array
+  /me:
+    get:
+      summary: Get current user profile
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User object
+  /admin/users/{id}/ban:
+    post:
+      summary: Ban a user permanently
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Reason for ban
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        "204":
+          description: Banned
+    delete:
+      summary: Un‑ban a user
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Unbanned
+  /admin/tags:
+    post:
+      summary: Create a new tag
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, tagType]
+              properties:
+                name:
+                  type: string
+                tagType:
+                  type: integer
+                  description: FK to dotdeck_tag_type.id
+      responses:
+        "201":
+          description: New tag id
+  /admin/audit:
+    get:
+      summary: Recent audit rows latest 100
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Array of audit objects
+  /moderation/decks/{id}/soft-delete:
+    patch:
+      summary: Soft‑delete a deck
+      tags: [Moderation]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+  /moderation/comments/{id}/soft-delete:
+    patch:
+      summary: Soft‑delete a comment
+      tags: [Moderation]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    DeckCreate:
+      type: object
+      required: [title, snippets]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        thumbnailUrl:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        snippets:
+          type: array
+          items:
+            type: object
+            required: [language, code]
+            properties:
+              language:
+                type: string
+              caption:
+                type: string
+              code:
+                type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        tagType:
+          type: integer
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+        body:
+          type: string
+        authorId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    RatingTotals:
+      type: object
+      properties:
+        up:
+          type: integer
+        down:
+          type: integer
+    AuditRow:
+      type: object
+      properties:
+        id:
+          type: integer
+        actorId:
+          type: integer
+        action:
+          type: string
+        table:
+          type: string
+        rowId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
