@@ -16,6 +16,7 @@ import { meRouter } from "./routes/user.routes.js";
 import { moderationRouter } from "./routes/moderation.routes.js";
 import { adminRouter } from "./routes/admin.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
+import { bannedGuard } from "./middleware/banned.middleware.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
 
@@ -31,11 +32,11 @@ app.use("/uploads", express.static("uploads"));
 
 // ────────── routes ──────────
 app.use("/auth", authRouter);
-app.use("/decks", deckRouter);
+app.use("/decks", bannedGuard, deckRouter);
 app.use("/tags", tagRouter);
 app.use("/me", meRouter);
-app.use("/moderation", moderationRouter);
-app.use("/admin", adminRouter);
+app.use("/moderation", bannedGuard, moderationRouter);
+app.use("/admin", bannedGuard, adminRouter);
 
 // Swagger
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
