@@ -13,6 +13,8 @@ import { authRouter } from "./routes/auth.routes.js";
 import { deckRouter } from "./routes/deck.routes.js";
 import { tagRouter } from "./routes/tag.routes.js";
 import { meRouter } from "./routes/user.routes.js";
+import { moderationRouter } from "./routes/moderation.routes.js";
+import { adminRouter } from "./routes/admin.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
@@ -32,6 +34,8 @@ app.use("/auth", authRouter);
 app.use("/decks", deckRouter);
 app.use("/tags", tagRouter);
 app.use("/me", meRouter);
+app.use("/moderation", moderationRouter);
+app.use("/admin", adminRouter);
 
 // Swagger
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

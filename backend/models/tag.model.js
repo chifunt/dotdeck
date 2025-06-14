@@ -4,14 +4,18 @@
 
 import { db } from "../config/db.js";
 
-export const TagModel = {
-  async all() {
-    const [rows] = await db.query(
-      `SELECT t.id, t.name, tt.name AS tag_type
-         FROM dotdeck_tag t
-         JOIN dotdeck_tag_type tt ON tt.id = t.tag_type
-         ORDER BY t.name`,
-    );
-    return rows;
-  },
-};
+/**
+ * Insert a new tag (admin-only call path).
+ *
+ * @param {string} name
+ * @param {number} tagType  – FK to dotdeck_tag_type.id
+ * @returns {Promise<import('mysql2').OkPacket>}
+ */
+async function create(name, tagType) {
+  return db.query("INSERT INTO dotdeck_tag (name, tag_type) VALUES (?,?)", [
+    name,
+    tagType,
+  ]);
+}
+
+export const TagModel = { all, create };
