@@ -5,6 +5,7 @@
 import slugify from "slugify";
 import { db } from "../config/db.js";
 import { DeckModel } from "../models/deck.model.js";
+import { TagService } from "./tag.service.js";
 
 export const DeckService = {
   /**
@@ -69,12 +70,13 @@ export const DeckService = {
       }
 
       // --- tags
-      if (payload.tags?.length) {
-        const [rows] = await conn.query(
-          "SELECT id FROM dotdeck_tag WHERE name IN (?)",
-          [payload.tags],
-        );
-        const tagIds = rows.map((r) => r.id);
+      if (payload.tags) {
+        if (payload.tags.length > 25)
+          throw new Error("Maximum 25 tags per deck");
+        const tagIds = await TagService.ensureTags(payload.tags);
+        await conn.query("DELETE FROM dotdeck_deck_tag WHERE deck_id = ?", [
+          deckId,
+        ]);
         const values = tagIds.map((id) => [deckId, id]);
         await conn.query(
           "INSERT IGNORE INTO dotdeck_deck_tag (deck_id, tag_id) VALUES ?",
@@ -126,6 +128,24 @@ export const DeckService = {
                (deck_id, language, caption, code, sort_order)
              VALUES (?,?,?,?,?)`,
             [deckId, s.language, s.caption, s.code, idx],
+          );
+        }
+      }
+
+      // 3. replace TAGS if provided
+      if (payload.tags) {
+        if (payload.tags.length > 25) {
+          throw new Error("Maximum 25 tags per deck");
+        }
+        const tagIds = await TagService.ensureTags(payload.tags);
+        await conn.query("DELETE FROM dotdeck_deck_tag WHERE deck_id = ?", [
+          deckId,
+        ]);
+        if (tagIds.length) {
+          const values = tagIds.map((id) => [deckId, id]);
+          await conn.query(
+            "INSERT IGNORE INTO dotdeck_deck_tag (deck_id, tag_id) VALUES ?",
+            [values],
           );
         }
       }

@@ -33,6 +33,14 @@ deckRouter.post(
     body("title").isLength({ min: 3 }),
     body("description").optional().isString(),
     body("thumbnailUrl").optional().isURL(),
+    // ─── TAGS ──────────────────────────────────────────────
+    // optional array, max 25 strings
+    body("tags")
+      .optional({ nullable: true })
+      .isArray({ max: 25 })
+      .withMessage("tags must be an array (max 25 items)"),
+    body("tags.*").optional().isString().trim().notEmpty(),
+    // ───────────────────────────────────────────────────────
     body("snippets")
       .isArray({ min: 1 })
       .withMessage("snippets must be a non-empty array"),
@@ -70,6 +78,14 @@ deckRouter.patch(
     body("title").optional().isString().isLength({ min: 3 }),
     body("description").optional().isString(),
     body("thumbnailUrl").optional().isURL(),
+    // ─── TAGS ──────────────────────────────────────────────
+    // optional array, max 25 strings
+    body("tags")
+      .optional({ nullable: true })
+      .isArray({ max: 25 })
+      .withMessage("tags must be an array (max 25 items)"),
+    body("tags.*").optional().isString().trim().notEmpty(),
+    // ───────────────────────────────────────────────────────
     body("snippets").optional().isArray({ min: 1 }),
     body("snippets")
       .optional()

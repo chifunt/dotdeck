@@ -24,9 +24,10 @@ export const TagModel = {
       `SELECT t.id,
               t.name,
               t.tag_type      AS tagType,
+              t.is_official   AS isOfficial,
               tt.name         AS tagTypeName
          FROM dotdeck_tag        t
-         JOIN dotdeck_tag_type   tt ON tt.id = t.tag_type
+         LEFT JOIN dotdeck_tag_type   tt ON tt.id = t.tag_type
          ORDER BY tt.id, t.name`,
     );
     return rows;
@@ -44,5 +45,60 @@ export const TagModel = {
       name,
       tagType,
     ]);
+  },
+
+  /**
+   * Fetch by exact name.
+   * @param {string} name
+   */
+  async findByName(name) {
+    const [[row]] = await db.query(
+      "SELECT * FROM dotdeck_tag WHERE name = ? LIMIT 1",
+      [name],
+    );
+    return row;
+  },
+
+  /**
+   * Create an **unofficial** tag (used at deck-submit time).
+   * @param {string} name
+   * @returns {Promise<number>} tagId
+   */
+  async createUnofficial(name) {
+    try {
+      const [r] = await db.query(
+        "INSERT IGNORE INTO dotdeck_tag (name, is_official, tag_type) VALUES (?,0,NULL)",
+        [name],
+      );
+      if (r.insertId) return r.insertId; // brand-new
+      const tag = await this.findByName(name); // already existed
+      return tag.id;
+    } catch (e) {
+      const tag = await this.findByName(name);
+      return tag?.id;
+    }
+  },
+
+  /** Mark tag as official (admin). */
+  async approve(id) {
+    await db.query("UPDATE dotdeck_tag SET is_official = 1 WHERE id = ?", [id]);
+  },
+
+  /**
+   * Merge two tags → keeps *target*, moves deck references, deletes source.
+   */
+  async merge(sourceId, targetId, conn = db) {
+    await conn.beginTransaction();
+    try {
+      await conn.query(
+        "UPDATE IGNORE dotdeck_deck_tag SET tag_id = ? WHERE tag_id = ?",
+        [targetId, sourceId],
+      );
+      await conn.query("DELETE FROM dotdeck_tag WHERE id = ?", [sourceId]);
+      await conn.commit();
+    } catch (e) {
+      await conn.rollback();
+      throw e;
+    }
   },
 };

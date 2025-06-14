@@ -8,6 +8,7 @@ import { authRequired } from "../middleware/auth.middleware.js";
 import { adminRequired } from "../middleware/role.middleware.js";
 import { BanService } from "../services/ban.service.js";
 import { TagModel } from "../models/tag.model.js";
+import { TagService } from "../services/tag.service.js";
 import { Audit } from "../utils/audit.util.js";
 import { db } from "../config/db.js";
 
@@ -54,6 +55,36 @@ adminRouter.post(
       const [r] = await TagModel.create(name, tagType); // you can add create() to TagModel
       await Audit.log(req.user.id, "create_tag", "dotdeck_tag", r.insertId);
       res.status(201).json({ id: r.insertId });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+/* approve tag */
+adminRouter.patch(
+  "/tags/:id/approve",
+  authRequired,
+  adminRequired,
+  async (req, res, next) => {
+    try {
+      await TagService.approve(req.params.id);
+      res.status(204).end();
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+/* merge tags */
+adminRouter.patch(
+  "/tags/:id/merge-into/:targetId",
+  authRequired,
+  adminRequired,
+  async (req, res, next) => {
+    try {
+      await TagService.merge(req.params.id, req.params.targetId);
+      res.status(204).end();
     } catch (e) {
       next(e);
     }
