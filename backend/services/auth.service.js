@@ -30,7 +30,7 @@ export const AuthService = {
   },
 
   _issueToken(user) {
-    const payload = { id: user.id, username: user.username };
+    const payload = { id: user.id, username: user.username, role: user.role };
     const token = jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "7d" });
     return { token, user: payload };
   },
