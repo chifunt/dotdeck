@@ -62,7 +62,7 @@ export const DeckModel = {
     return r.affectedRows === 1;
   },
 
-  async update(id, userId, fields) {
+  async update(id, userId, fields, conn = db) {
     const sets = [];
     const vals = [];
     if (fields.title) {
@@ -89,7 +89,7 @@ export const DeckModel = {
 
     if (sets.length) {
       vals.push(id, userId);
-      await db.query(
+      await conn.query(
         `UPDATE dotdeck_deck SET ${sets.join(", ")}, updated_at = NOW()
          WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
         vals,
