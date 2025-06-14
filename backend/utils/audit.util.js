@@ -19,8 +19,15 @@ export const Audit = {
    * @param {Record<string,any>|null} meta
    * @returns {Promise<void>}
    */
-  async log(actorId, action, targetTable, targetId = null, meta = null) {
-    await db.query(
+  async log(
+    actorId,
+    action,
+    targetTable,
+    targetId = null,
+    meta = null,
+    conn = db,
+  ) {
+    await conn.query(
       `INSERT INTO dotdeck_audit
          (actor_id, action, target_table, target_id, meta)
        VALUES (?,?,?,?,?)`,
