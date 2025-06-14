@@ -15,7 +15,7 @@
     "url": "git@git.nwt.fhstp.ac.at:cc241001/ss2025_ccl_cc241001.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Joshua Tjhie",
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^9.1.2"
