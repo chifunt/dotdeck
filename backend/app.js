@@ -43,6 +43,9 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/", (_req, res) => res.send("Dotdeck API 🎛️"));
 
+// ────────── 404  ──────────
+app.use((_req, res) => res.status(404).json({ message: "Not found" }));
+
 app.use(errorHandler);
 
 export default app;
