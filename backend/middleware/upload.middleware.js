@@ -21,8 +21,8 @@ if (!existsSync(UPLOAD_DIR)) mkdirSync(UPLOAD_DIR, { recursive: true });
 /** @constant {number} Maximum allowed upload size in bytes (2 MB) */
 const MAX_SIZE = 2 * 1024 * 1024;
 
-/** @constant {RegExp} Allowed MIME types for image upload */
-const ALLOWED = /^image\/(jpe?g|png|gif|webp)$/;
+/** @constant {RegExp} Allowed MIME types for image upload (GIF removed) */
+const ALLOWED = /^image\/(jpe?g|png|webp)$/;
 
 // ─────────────────────────────────────────
 // Multer (memory storage) → Sharp pipeline
