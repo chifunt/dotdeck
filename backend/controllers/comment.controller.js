@@ -6,8 +6,12 @@ import { CommentModel } from "../models/comment.model.js";
 export const CommentController = {
   async list(req, res, next) {
     try {
-      const comments = await CommentModel.list(req.params.id);
-      res.json(comments);
+      const { limit = 50, offset = 0 } = req.query;
+      const { data, total } = await CommentModel.list(req.params.id, {
+        limit,
+        offset,
+      });
+      res.json({ data, paging: { limit, offset, total } });
     } catch (err) {
       next(err);
     }

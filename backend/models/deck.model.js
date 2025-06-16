@@ -15,7 +15,7 @@ export const DeckModel = {
     return r.insertId;
   },
 
-  async getAll({ tool, tag, limit = 20, offset = 0 }) {
+  async getAll({ tool, tag, q, limit = 20, offset = 0 }) {
     const params = [];
     let joinSql = "";
     let whereSql = "WHERE d.deleted_at IS NULL";
@@ -28,8 +28,15 @@ export const DeckModel = {
       params.push(tool ?? tag);
     }
 
+    if (q) {
+      whereSql += " AND (d.title LIKE ? OR d.description LIKE ?)";
+      const like = `%${q}%`;
+      params.push(like, like);
+    }
+
     params.push(limit, offset);
 
+    // 1. data slice
     const [rows] = await db.query(
       `SELECT d.*, u.username
          FROM dotdeck_deck d
@@ -40,7 +47,17 @@ export const DeckModel = {
        LIMIT ? OFFSET ?`,
       params,
     );
-    return rows;
+
+    // 2. total for the current filter set
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) AS total
+         FROM dotdeck_deck d
+         ${joinSql}
+         ${whereSql.split("LIMIT")[0]}`, // remove LIMIT clause
+      params.slice(0, params.length - 2), // drop limit/offset
+    );
+
+    return { data: rows, total };
   },
 
   async getById(id) {

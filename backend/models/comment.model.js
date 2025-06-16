@@ -13,17 +13,23 @@ export const CommentModel = {
     return { id: r.insertId, deckId, userId, body };
   },
 
-  async list(deckId, limit = 50) {
+  async list(deckId, { limit = 50, offset = 0 }) {
     const [rows] = await db.query(
       `SELECT c.id, c.body, c.created_at, u.username
          FROM dotdeck_comment c
          JOIN dotdeck_user u ON u.id = c.user_id
         WHERE c.deck_id = ? AND c.deleted_at IS NULL
         ORDER BY c.created_at DESC
-        LIMIT ?`,
-      [deckId, limit],
+        LIMIT ? OFFSET ?`,
+      [deckId, limit, offset],
     );
-    return rows;
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) AS total
+         FROM dotdeck_comment
+        WHERE deck_id = ? AND deleted_at IS NULL`,
+      [deckId],
+    );
+    return { data: rows, total };
   },
 
   async softDelete(id, userId) {

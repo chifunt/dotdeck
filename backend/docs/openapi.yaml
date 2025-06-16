@@ -83,9 +83,24 @@ paths:
           name: tool
           schema:
             type: string
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Full-text search in deck title & description
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+          description: Max rows to return
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+          description: Row offset for pagination
       responses:
         "200":
-          description: Deck array
+          description: |
+            Deck Array Object with:
+              • `data`   – deck array
+              • `paging` – { limit, offset, total }
     post:
       summary: Create a new deck
       tags: [Decks]
@@ -248,6 +263,14 @@ paths:
           required: true
           schema:
             type: integer
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+          description: Max comments per page
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+          description: Row offset for pagination
       responses:
         "200":
           description: Comment array

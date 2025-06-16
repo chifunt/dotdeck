@@ -8,8 +8,21 @@ import { DeckService } from "../services/deck.service.js";
 export const DeckController = {
   list: async (req, res, next) => {
     try {
-      const decks = await DeckModel.getAll(req.query);
-      res.json(decks);
+      // unpack validated query params (they’re already integers thanks to .toInt())
+      const { limit = 20, offset = 0, tag, tool, q } = req.query;
+
+      const { data, total } = await DeckModel.getAll({
+        tool,
+        tag,
+        q,
+        limit,
+        offset,
+      });
+
+      res.json({
+        data,
+        paging: { limit, offset, total },
+      });
     } catch (err) {
       next(err);
     }

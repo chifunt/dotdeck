@@ -19,6 +19,10 @@ deckRouter.get(
   validate([
     query("tool").optional().isString(),
     query("tag").optional().isString(),
+    // pagination & search
+    query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
+    query("offset").optional().isInt({ min: 0 }).toInt(),
+    query("q").optional().isString().trim().isLength({ min: 1 }),
   ]),
   DeckController.list,
 );
