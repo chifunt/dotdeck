@@ -1,26 +1,39 @@
 openapi: 3.0.3
+
 info:
   title: DotDeck API
   version: 1.0.0
+  description: |
+    REST API backing the DotDeck code-sharing platform.
+    All endpoints are JSON unless explicitly using `multipart/form-data`.
+
 servers:
   - url: /api/v1
+
+# ────────────────────────────────────────────────────────────
+#  TAGS
+# ────────────────────────────────────────────────────────────
 tags:
   - name: Auth
-    description: Sign‑up & login
+    description: Sign-up & login
   - name: Decks
     description: Create, list, update, view & delete decks
   - name: Comments
     description: Flat comment threads
   - name: Ratings
-    description: Thumbs‑up / thumbs‑down votes
+    description: Thumbs-up / thumbs-down votes
   - name: Tags
     description: Public tag list
   - name: Admin
-    description: Site‑wide administration
+    description: Site-wide administration
   - name: Moderation
-    description: Moderator‑only tools
+    description: Moderator-only tools
   - name: Users
-    description: User profile
+    description: Current user profile
+
+# ────────────────────────────────────────────────────────────
+#  PATHS
+# ────────────────────────────────────────────────────────────
 paths:
   /auth/signup:
     post:
@@ -34,20 +47,17 @@ paths:
               type: object
               required: [username, email, password]
               properties:
-                username:
-                  type: string
-                  minLength: 3
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-                  minLength: 6
+                username: { type: string, minLength: 3 }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 6 }
+            examples:
+              SignupPayload: { $ref: "#/components/examples/SignupPayload" }
       responses:
-        "201":
-          description: JWT plus user payload
-        "400":
-          description: Email already in use
+        "201": { $ref: "#/components/responses/AuthSuccess" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /auth/login:
     post:
       summary: Login and get a JWT
@@ -60,15 +70,16 @@ paths:
               type: object
               required: [email, password]
               properties:
-                email:
-                  type: string
-                password:
-                  type: string
+                email: { type: string }
+                password: { type: string }
+            examples:
+              LoginPayload: { $ref: "#/components/examples/LoginPayload" }
       responses:
-        "200":
-          description: JWT plus user payload
-        "400":
-          description: Invalid credentials
+        "200": { $ref: "#/components/responses/AuthSuccess" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /decks:
     get:
       summary: List decks
@@ -76,13 +87,11 @@ paths:
       parameters:
         - in: query
           name: tag
-          schema:
-            type: string
+          schema: { type: string }
           description: Filter by tag name
         - in: query
           name: tool
-          schema:
-            type: string
+          schema: { type: string }
         - in: query
           name: q
           schema: { type: string }
@@ -90,103 +99,91 @@ paths:
         - in: query
           name: limit
           schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
-          description: Max rows to return
         - in: query
           name: offset
           schema: { type: integer, minimum: 0, default: 0 }
-          description: Row offset for pagination
       responses:
-        "200":
-          description: |
-            Deck Array Object with:
-              • `data`   – deck array
-              • `paging` – { limit, offset, total }
+        "200": { $ref: "#/components/responses/DeckArray" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
     post:
       summary: Create a new deck
       tags: [Decks]
-      security:
-        - bearerAuth: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/DeckCreate"
+            schema: { $ref: "#/components/schemas/DeckCreate" }
+            examples:
+              DeckCreate: { $ref: "#/components/examples/DeckCreate" }
       responses:
-        "201":
-          description: Created deck id
+        "201": { $ref: "#/components/responses/DeckCreated" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /decks/{id}:
+    parameters:
+      - $ref: "#/components/parameters/DeckId"
     get:
       summary: Get a single deck
       tags: [Decks]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
       responses:
-        "200":
-          description: Deck with metadata
-        "404":
-          description: Not found
-    delete:
-      summary: Delete own deck (soft delete)
-      tags: [Decks]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-      responses:
-        "204":
-          description: Deleted
-        "404":
-          description: Not found
+        "200": { $ref: "#/components/responses/DeckDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
     patch:
       summary: Update a deck
       tags: [Decks]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/DeckCreate"
+            schema: { $ref: "#/components/schemas/DeckCreate" }
       responses:
-        "204":
-          description: Updated
+        "204": { $ref: "#/components/responses/NoContent" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+    delete:
+      summary: Delete own deck (soft delete)
+      tags: [Decks]
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204": { $ref: "#/components/responses/NoContent" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /decks/slug/{slug}:
+    parameters:
+      - in: path
+        name: slug
+        required: true
+        schema: { type: string }
     get:
       summary: Get a deck by its slug
       tags: [Decks]
-      parameters:
-        - in: path
-          name: slug
-          required: true
-          schema:
-            type: string
       responses:
-        "200":
-          description: Deck with metadata
-        "404":
-          description: Not found
+        "200": { $ref: "#/components/responses/DeckDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /decks/thumbnail:
     post:
       summary: Upload a thumbnail image
       tags: [Decks]
-      security:
-        - bearerAuth: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -198,93 +195,77 @@ paths:
                   type: string
                   format: binary
       responses:
-        "200":
-          description: URL where the file is served
+        "200": { $ref: "#/components/responses/ThumbnailUploaded" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /decks/{id}/ratings:
+    parameters:
+      - $ref: "#/components/parameters/DeckId"
     post:
       summary: Vote on a deck
       tags: [Ratings]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required: [score]
               properties:
                 score:
                   type: integer
                   enum: [1, -1]
       responses:
-        "200":
-          description: Vote totals
+        "200": { $ref: "#/components/responses/VoteTotals" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
     get:
-      summary: Get up down counts
+      summary: Get up/down counts
       tags: [Ratings]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
       responses:
-        "200":
-          description: Totals object
+        "200": { $ref: "#/components/responses/VoteTotals" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
     delete:
       summary: Remove my vote
       tags: [Ratings]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+      security: [{ bearerAuth: [] }]
       responses:
-        "204":
-          description: Vote removed
-        "404":
-          description: No existing vote
+        "204": { $ref: "#/components/responses/NoContent" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /decks/{id}/comments:
+    parameters:
+      - $ref: "#/components/parameters/DeckId"
     get:
       summary: List comments for a deck
       tags: [Comments]
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
         - in: query
           name: limit
           schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
-          description: Max comments per page
         - in: query
           name: offset
           schema: { type: integer, minimum: 0, default: 0 }
-          description: Row offset for pagination
       responses:
-        "200":
-          description: Comment array
+        "200": { $ref: "#/components/responses/CommentArray" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
     post:
       summary: Add a comment
       tags: [Comments]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -292,34 +273,34 @@ paths:
             schema:
               type: object
               required: [body]
-              properties:
-                body:
-                  type: string
+              properties: { body: { type: string } }
+            examples:
+              CommentPayload: { $ref: "#/components/examples/CommentPayload" }
       responses:
-        "201":
-          description: The created comment
+        "201": { $ref: "#/components/responses/CommentCreated" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /decks/{id}/comments/{commentId}:
+    parameters:
+      - $ref: "#/components/parameters/DeckId"
+      - in: path
+        name: commentId
+        required: true
+        schema: { type: integer }
     delete:
       summary: Delete my comment (soft delete)
       tags: [Comments]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: commentId
-          required: true
-          schema:
-            type: integer
+      security: [{ bearerAuth: [] }]
       responses:
-        "204":
-          description: Deleted
-        "404":
-          description: Not found
+        "204": { $ref: "#/components/responses/NoContent" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /tags:
     get:
       summary: List tags
@@ -329,60 +310,70 @@ paths:
           name: all
           schema: { type: integer, enum: [0, 1] }
           description: Include unofficial tags when `1`.
-      responses: { "200": { description: Tag array } }
+      responses:
+        "200": { $ref: "#/components/responses/TagArray" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /me:
     get:
       summary: Get current user profile
       tags: [Users]
-      security:
-        - bearerAuth: []
+      security: [{ bearerAuth: [] }]
       responses:
-        "200":
-          description: User object
+        "200": { $ref: "#/components/responses/UserProfile" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  ############################################################
+  #  ADMIN ENDPOINTS
+  ############################################################
+
   /admin/users/{id}/ban:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
     post:
       summary: Ban a user permanently
       tags: [Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+      security: [{ bearerAuth: [] }]
       requestBody:
-        description: Reason for ban
+        required: false
         content:
           application/json:
             schema:
               type: object
               properties:
-                reason:
-                  type: string
+                reason: { type: string }
+            examples:
+              BanReason: { value: { reason: "Spam & harassment" } }
       responses:
-        "204":
-          description: Banned
+        "204": { $ref: "#/components/responses/NoContent" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
     delete:
-      summary: Un‑ban a user
+      summary: Un-ban a user
       tags: [Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+      security: [{ bearerAuth: [] }]
       responses:
-        "204":
-          description: Unbanned
+        "204": { $ref: "#/components/responses/NoContent" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /admin/tags:
     post:
       summary: Create a new tag
       tags: [Admin]
-      security:
-        - bearerAuth: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -391,169 +382,454 @@ paths:
               type: object
               required: [name, tagType]
               properties:
-                name:
-                  type: string
+                name: { type: string }
                 tagType:
-                  type: integer
-                  description: FK to dotdeck_tag_type.id
+                  { type: integer, description: FK → dotdeck_tag_type.id }
+            examples:
+              TagCreate: { value: { name: "rust", tagType: 2 } }
       responses:
-        "201":
-          description: New tag id
-  /admin/audit:
-    get:
-      summary: Recent audit rows latest 100
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: Array of audit objects
+        "201": { $ref: "#/components/responses/DeckCreated" } # same `{ id }` envelope
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /admin/tags/{id}/approve:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
     patch:
       summary: Approve a tag
       tags: [Admin]
       security: [{ bearerAuth: [] }]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: integer }
-      responses: { "204": { description: Approved } }
+      responses:
+        "204": { $ref: "#/components/responses/NoContent" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /admin/tags/{id}/merge-into/{targetId}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+      - in: path
+        name: targetId
+        required: true
+        schema: { type: integer }
     patch:
       summary: Merge two tags
       tags: [Admin]
       security: [{ bearerAuth: [] }]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: integer }
-        - in: path
-          name: targetId
-          required: true
-          schema: { type: integer }
-      responses: { "204": { description: Merged } }
+      responses:
+        "204": { $ref: "#/components/responses/NoContent" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /admin/audit:
+    get:
+      summary: Latest 100 audit rows
+      tags: [Admin]
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Array of audit objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AuditRow" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  ############################################################
+  #  MODERATION ENDPOINTS
+  ############################################################
+
   /moderation/decks/{id}/soft-delete:
+    parameters:
+      - $ref: "#/components/parameters/DeckId"
     patch:
-      summary: Soft‑delete a deck
+      summary: Soft-delete a deck
       tags: [Moderation]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+      security: [{ bearerAuth: [] }]
       responses:
-        "204":
-          description: Deleted
-        "404":
-          description: Not found
+        "204": { $ref: "#/components/responses/NoContent" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   /moderation/comments/{id}/soft-delete:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
     patch:
-      summary: Soft‑delete a comment
+      summary: Soft-delete a comment
       tags: [Moderation]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+      security: [{ bearerAuth: [] }]
       responses:
-        "204":
-          description: Deleted
-        "404":
-          description: Not found
+        "204": { $ref: "#/components/responses/NoContent" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+# ────────────────────────────────────────────────────────────
+#  COMPONENTS
+# ────────────────────────────────────────────────────────────
 components:
+  # ── Common parameter refs ─────────────────────────────────
+  parameters:
+    DeckId:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer }
+
+  # ── Security ──────────────────────────────────────────────
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  # ── Primitive Schemas ─────────────────────────────────────
   schemas:
+    User:
+      type: object
+      properties:
+        id: { type: integer, example: 7 }
+        username: { type: string, example: johndoe }
+        email: { type: string, example: john@example.com }
+
+    Tag:
+      type: object
+      properties:
+        id: { type: integer, example: 3 }
+        name: { type: string, example: javascript }
+        tagType: { type: integer, nullable: true }
+        isOfficial: { type: boolean, example: true }
+
+    Comment:
+      type: object
+      properties:
+        id: { type: integer, example: 12 }
+        body: { type: string, example: "Nice snippet!" }
+        username: { type: string, example: johndoe }
+        createdAt:
+          { type: string, format: date-time, example: "2024-05-01T12:34:56Z" }
+
+    RatingTotals:
+      type: object
+      properties:
+        upvotes: { type: integer, example: 42 }
+        downvotes: { type: integer, example: 3 }
+
+    DeckSummary:
+      type: object
+      properties:
+        id: { type: integer, example: 5 }
+        title: { type: string, example: "Tailwind cheat-sheet" }
+        slug: { type: string, example: tailwind-cheat-sheet }
+        description: { type: string }
+        thumbnailUrl: { type: string, format: uri }
+        createdAt: { type: string, format: date-time }
+
     DeckCreate:
       type: object
       required: [title, snippets]
       properties:
-        title:
-          type: string
-        description:
-          type: string
-        thumbnailUrl:
-          type: string
+        title: { type: string }
+        description: { type: string }
+        thumbnailUrl: { type: string }
         tags:
           type: array
           maxItems: 25
-          items:
-            type: string
+          items: { type: string }
         snippets:
           type: array
           items:
             type: object
             required: [language, code]
             properties:
-              language:
-                type: string
-              caption:
-                type: string
-              code:
-                type: string
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        username:
-          type: string
-        email:
-          type: string
-    Tag:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        tagType:
-          type: integer
-        isOfficial:
-          type: boolean
-    Comment:
-      type: object
-      properties:
-        id:
-          type: integer
-        body:
-          type: string
-        authorId:
-          type: integer
-        createdAt:
-          type: string
-          format: date-time
-    RatingTotals:
-      type: object
-      properties:
-        upvotes:
-          type: integer
-        downvotes:
-          type: integer
+              language: { type: string }
+              caption: { type: string }
+              code: { type: string }
+
     AuditRow:
       type: object
+      description: Single moderation / admin audit-trail entry.
       properties:
-        id:
-          type: integer
-        actorId:
-          type: integer
-        action:
-          type: string
-        table:
-          type: string
-        rowId:
-          type: integer
+        id: { type: integer, example: 901 }
+        actorId: { type: integer, example: 1 }
+        action: { type: string, example: "ban_user" }
+        table: { type: string, example: "dotdeck_user" }
+        rowId: { type: integer, nullable: true, example: 42 }
         createdAt:
-          type: string
-          format: date-time
+          { type: string, format: date-time, example: "2024-05-02T15:04:05Z" }
+
+    AuthSuccess:
+      type: object
+      properties:
+        token:
+          { type: string, example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+        user: { $ref: "#/components/schemas/User" }
+
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+
+    ValidationErrors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              msg: { type: string }
+              param: { type: string }
+
+    # ── Composite success schemas (for arrays etc.) ───────────
+    DeckArray:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/DeckSummary" }
+        paging:
+          type: object
+          properties:
+            limit: { type: integer, example: 20 }
+            offset: { type: integer, example: 0 }
+            total: { type: integer, example: 128 }
+
+    CommentArray:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/Comment" }
+        paging:
+          type: object
+          properties:
+            limit: { type: integer, example: 50 }
+            offset: { type: integer, example: 0 }
+            total: { type: integer, example: 3 }
+
+    DeckCreated:
+      type: object
+      properties:
+        id: { type: integer, example: 42 }
+
+    CommentCreated:
+      allOf:
+        - $ref: "#/components/schemas/Comment"
+
+    ThumbnailUploaded:
+      type: object
+      properties:
+        url: { type: string, example: /uploads/c2297e07.webp }
+
+    VoteTotals:
+      $ref: "#/components/schemas/RatingTotals"
+
+    UserProfile:
+      $ref: "#/components/schemas/User"
+
+  # ── Shared responses ──────────────────────────────────────
+  responses:
+    # — 2xx —
+    AuthSuccess:
+      description: JWT plus user payload
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AuthSuccess" }
+          examples:
+            AuthSuccess: { $ref: "#/components/examples/AuthSuccess" }
+
+    DeckArray:
+      description: List of decks with paging object
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/DeckArray" }
+          examples:
+            DeckList: { $ref: "#/components/examples/DeckList" }
+
+    DeckDetail:
+      description: Deck with metadata
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/DeckSummary" }
+
+    DeckCreated:
+      description: Created deck id
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/DeckCreated" }
+          examples:
+            DeckCreated: { $ref: "#/components/examples/DeckCreated" }
+
+    CommentArray:
+      description: Comment array with paging
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/CommentArray" }
+
+    CommentCreated:
+      description: The created comment
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/CommentCreated" }
+
+    VoteTotals:
+      description: Vote totals
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/RatingTotals" }
+          examples:
+            VoteTotals: { $ref: "#/components/examples/VoteTotals" }
+
+    ThumbnailUploaded:
+      description: URL where the file is served
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ThumbnailUploaded" }
+
+    TagArray:
+      description: Tag list
+      content:
+        application/json:
+          schema:
+            type: array
+            items: { $ref: "#/components/schemas/Tag" }
+
+    UserProfile:
+      description: User object
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/User" }
+
+    NoContent:
+      description: Operation successful, no response body
+
+    # — 4xx / 5xx —
+    BadRequest:
+      description: Bad request – malformed JSON or parameters
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            BadRequest: { $ref: "#/components/examples/BadRequest" }
+
+    Unauthorized:
+      description: Missing or invalid JWT token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            Unauthorized: { $ref: "#/components/examples/Unauthorized" }
+
+    Forbidden:
+      description: Authenticated but not allowed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            Forbidden: { $ref: "#/components/examples/Forbidden" }
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            NotFound: { $ref: "#/components/examples/NotFound" }
+
+    ValidationError:
+      description: Payload failed validation
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ValidationErrors" }
+          examples:
+            ValidationError: { $ref: "#/components/examples/ValidationError" }
+
+    ServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            ServerError: { $ref: "#/components/examples/ServerError" }
+
+  # ── Concrete EXAMPLES (API-mock friendly) ────────────────
+  examples:
+    SignupPayload:
+      value: { username: johndoe, email: john@example.com, password: secret123 }
+    LoginPayload:
+      value: { email: john@example.com, password: secret123 }
+
+    AuthSuccess:
+      value:
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aaa.bbb
+        user: { id: 1, username: johndoe, email: john@example.com }
+
+    DeckCreate:
+      value:
+        title: Tailwind cheat-sheet
+        description: Handy reference of Tailwind classes
+        tags: [css, tailwind]
+        snippets:
+          - language: html
+            caption: Minimal page
+            code: '<div class="flex items-center justify-center h-screen"></div>'
+
+    DeckCreated:
+      value: { id: 42 }
+
+    DeckList:
+      value:
+        data:
+          - id: 42
+            title: Tailwind cheat-sheet
+            slug: tailwind-cheat-sheet
+            description: Handy reference of Tailwind classes
+            thumbnailUrl: /uploads/c2297e07.webp
+            createdAt: 2024-05-01T12:34:56Z
+        paging: { limit: 20, offset: 0, total: 1 }
+
+    CommentPayload:
+      value: { body: "Great deck!" }
+
+    VoteTotals:
+      value: { upvotes: 9, downvotes: 1 }
+
+    BadRequest:
+      value: { message: "Malformed JSON" }
+    Unauthorized:
+      value: { message: "Invalid or expired token" }
+    Forbidden:
+      value: { message: "Admin privilege required" }
+    NotFound:
+      value: { message: "Deck not found" }
+    ValidationError:
+      value:
+        errors:
+          - msg: "title is required"
+            param: title
+    ServerError:
+      value: { message: "Server error" }
