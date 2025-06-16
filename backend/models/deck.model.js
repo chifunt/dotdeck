@@ -118,6 +118,11 @@ export const DeckModel = {
   async softDelete(id, userId) {
     const params = [id];
     let whereUser = "";
+    if (userId === undefined) {
+      throw new Error(
+        "softDelete(): userId must be passed (null for moderator/admin routes)",
+      );
+    }
     if (userId !== null && userId !== undefined) {
       whereUser = " AND user_id = ?";
       params.push(userId);
