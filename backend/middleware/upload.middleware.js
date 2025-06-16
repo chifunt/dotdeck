@@ -36,8 +36,16 @@ const multerUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_SIZE },
   fileFilter: (_req, file, cb) => {
-    if (ALLOWED.test(file.mimetype)) return cb(null, true);
-    return cb(new Error("Invalid file type"), false);
+    try {
+      if (ALLOWED.test(file.mimetype)) return cb(null, true);
+
+      // Use MulterError so Express recognises it straight away
+      const err = new multer.MulterError("LIMIT_UNEXPECTED_FILE");
+      err.message = "Invalid file type";
+      return cb(err, false);
+    } catch (err) {
+      return cb(err, false);
+    }
   },
 }).single("image");
 
