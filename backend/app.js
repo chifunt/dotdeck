@@ -19,6 +19,10 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import { bannedGuard } from "./middleware/banned.middleware.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
+import {
+  rateLimitAuth,
+  rateLimitGeneral,
+} from "./middleware/rate-limit.middleware.js";
 
 const app = express();
 
@@ -32,7 +36,9 @@ app.use("/uploads", express.static("uploads"));
 
 // ────────── API v1 namespace ──────────
 const api = express.Router();
-api.use("/auth", authRouter);
+api.use("/auth", rateLimitAuth, authRouter);
+
+api.use(rateLimitGeneral);
 api.use("/decks", bannedGuard, deckRouter);
 api.use("/tags", tagRouter);
 api.use("/me", meRouter);
