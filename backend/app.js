@@ -13,6 +13,7 @@ import { authRouter } from "./routes/auth.routes.js";
 import { deckRouter } from "./routes/deck.routes.js";
 import { tagRouter } from "./routes/tag.routes.js";
 import { meRouter } from "./routes/user.routes.js";
+import { userRouter } from "./routes/user-public.routes.js";
 import { moderationRouter } from "./routes/moderation.routes.js";
 import { adminRouter } from "./routes/admin.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
@@ -42,6 +43,7 @@ api.use(rateLimitGeneral);
 api.use("/decks", bannedGuard, deckRouter);
 api.use("/tags", tagRouter);
 api.use("/me", meRouter);
+api.use("/users", userRouter);
 api.use("/moderation", bannedGuard, moderationRouter);
 api.use("/admin", bannedGuard, adminRouter);
 

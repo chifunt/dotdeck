@@ -146,4 +146,33 @@ export const DeckModel = {
     );
     return deck;
   },
+
+  /**
+   * List decks created by a user (non-deleted).
+   * @param {number} userId
+   * @param {{limit?:number,offset?:number}} param1
+   */
+  async getByUser(userId, { limit = 20, offset = 0 } = {}) {
+    const [rows] = await db.query(
+      `SELECT id,
+              title,
+              slug,
+              description,
+              thumbnail_url AS thumbnailUrl,
+              created_at     AS createdAt
+         FROM dotdeck_deck
+        WHERE user_id = ? AND deleted_at IS NULL
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?`,
+      [userId, limit, offset],
+    );
+
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) AS total
+         FROM dotdeck_deck
+        WHERE user_id = ? AND deleted_at IS NULL`,
+      [userId],
+    );
+    return { data: rows, total };
+  },
 };

@@ -42,4 +42,20 @@ export const UserModel = {
     );
     return row;
   },
+
+  /**
+   * Fetch by username (case-insensitive).
+   * @param {string} username
+   * @returns {Promise<{id:number,username:string,email:string}|undefined>}
+   */
+  async findByUsername(username) {
+    const [[row]] = await db.query(
+      "SELECT id, username, email \
+         FROM dotdeck_user \
+        WHERE LOWER(username) = LOWER(?) \
+        LIMIT 1",
+      [username],
+    );
+    return row;
+  },
 };

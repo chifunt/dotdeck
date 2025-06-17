@@ -29,7 +29,7 @@ tags:
   - name: Moderation
     description: Moderator-only tools
   - name: Users
-    description: Current user profile
+    description: User profiles
 
 # ────────────────────────────────────────────────────────────
 #  PATHS
@@ -325,6 +325,27 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "500": { $ref: "#/components/responses/ServerError" }
 
+  /users/{username}:
+    parameters:
+      - in: path
+        name: username
+        required: true
+        schema: { type: string }
+    get:
+      summary: Get a public user profile (and their decks)
+      tags: [Users]
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        "200": { $ref: "#/components/responses/UserWithDecks" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
   ############################################################
   #  ADMIN ENDPOINTS
   ############################################################
@@ -514,6 +535,12 @@ components:
         id: { type: integer, example: 7 }
         username: { type: string, example: johndoe }
         email: { type: string, example: john@example.com }
+
+    UserWithDecks:
+      type: object
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+        decks: { $ref: "#/components/schemas/DeckArray" }
 
     Tag:
       type: object
@@ -723,6 +750,12 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/User" }
+
+    UserWithDecks:
+      description: Public user profile with their decks
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/UserWithDecks" }
 
     NoContent:
       description: Operation successful, no response body
