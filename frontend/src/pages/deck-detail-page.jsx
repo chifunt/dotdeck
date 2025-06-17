@@ -30,6 +30,12 @@ export function DeckDetailPage() {
 
   const owner = user?.id === deck.userId;
 
+  /* -------------------------------------------------------------------- */
+  /* normalise optional arrays so we can map() safely                      */
+  /* -------------------------------------------------------------------- */
+  const tags = Array.isArray(deck.tags) ? deck.tags : [];
+  const snippets = Array.isArray(deck.snippets) ? deck.snippets : [];
+
   return (
     <>
       <Navbar />
@@ -64,17 +70,19 @@ export function DeckDetailPage() {
 
         <p className="text-rosePine-subtle">{deck.description}</p>
 
-        <div className="flex gap-2 flex-wrap">
-          {deck.tags.map((t) => (
-            <Link
-              key={t}
-              to={`/?tag=${t}`}
-              className="text-xs bg-rosePine-overlay/50 px-2 py-1 rounded"
-            >
-              {t}
-            </Link>
-          ))}
-        </div>
+        {!!tags.length && (
+          <div className="flex gap-2 flex-wrap">
+            {tags.map((t) => (
+              <Link
+                key={t}
+                to={`/?tag=${t}`}
+                className="text-xs bg-rosePine-overlay/50 px-2 py-1 rounded"
+              >
+                {t}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {owner && (
           <div className="flex gap-2">
@@ -95,7 +103,7 @@ export function DeckDetailPage() {
           </div>
         )}
 
-        {deck.snippets.map((s, i) => (
+        {snippets.map((s, i) => (
           <CodeBlock key={i} snippet={s} />
         ))}
 
