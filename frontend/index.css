@@ -1,9 +1,0 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-/* shadcn reset */
-@layer base {
-  :root {
-    color-scheme: dark;
-  }
-}
