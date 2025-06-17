@@ -1,14 +1,29 @@
+/**
+ * @file Small uncontrolled form used to create a new comment.
+ */
+
 import { useForm } from "react-hook-form";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-export function CommentForm({ onSubmit, isLoading }) {
-  const { register, handleSubmit, reset } = useForm({
-    defaultValues: { body: "" },
-  });
+/**
+ * @param {{
+ *   onSubmit: (body: string) => void | Promise<void>;
+ *   isLoading?: boolean;
+ * }} props
+ */
+export function CommentForm({ onSubmit, isLoading = false }) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm({ defaultValues: { body: "" } });
 
-  const submit = (v) => {
-    onSubmit(v.body);
+  /** Forward the plain body string and clear the textarea on success. */
+  const submit = async ({ body }) => {
+    await onSubmit(body);
     reset();
   };
 
@@ -19,7 +34,8 @@ export function CommentForm({ onSubmit, isLoading }) {
         placeholder="Add a comment…"
         {...register("body", { required: true })}
       />
-      <Button disabled={isLoading}>Post</Button>
+
+      <Button disabled={isLoading || isSubmitting}>Post</Button>
     </form>
   );
 }

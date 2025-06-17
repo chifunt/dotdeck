@@ -1,19 +1,27 @@
+/**
+ * @file Form wizard used for *both* “create” **and** “edit**” flows
+ * (the edit page just injects `initialValues` + a custom onSubmit).
+ */
+
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useCreateDeck } from "../features/decks/mutations";
-import { useTags } from "../features/tags/use-tags";
-import { Navbar } from "../layouts/navbar";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
+import { useCreateDeck } from "@/features/decks/mutations";
+import { useTags } from "@/features/tags/use-tags";
+
+import { Navbar } from "@/layouts/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 
+/*──────────────────────── Validation schema (Zod) ────────────────────────*/
 const schema = z.object({
   title: z.string().min(3),
   description: z.string().min(3),
-  tags: z.string().array().max(25),
+  tags: z.array(z.string()).max(25),
   thumbnailUrl: z.string().url().optional(),
   snippets: z
     .array(
@@ -26,34 +34,60 @@ const schema = z.object({
     .min(1),
 });
 
-export function CreateDeckPage() {
+/**
+ * Generic deck-editor page.
+ * If `initialValues` & `onSubmit` are passed (Edit page),
+ * it becomes a pre-filled “edit” form.
+ */
+export function CreateDeckPage({
+  initialValues,
+  submitLabel = "Publish",
+  onSubmit: externalSubmit,
+}) {
   const nav = useNavigate();
   const { data: tagList } = useTags();
   const createMut = useCreateDeck();
-  const { register, handleSubmit, control, setValue, watch } = useForm({
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    formState: { isSubmitting },
+  } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: {
+    defaultValues: initialValues ?? {
       tags: [],
       snippets: [{ language: "", caption: "", code: "" }],
     },
   });
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "snippets",
   });
 
+  /* Actual submit handler */
   const onSubmit = async (vals) => {
-    const { id } = await createMut.mutateAsync(vals);
-    nav(`/decks/${id}`); // backend returns slug via redirect? adjust as needed
+    const mutFn = externalSubmit ?? createMut.mutateAsync;
+    const { id } = await mutFn(vals);
+    toast.success("Saved!");
+    if (!externalSubmit) nav(`/decks/${id}`);
   };
 
+  /*──────────────────────── Render ────────────────────────*/
   return (
     <>
       <Navbar />
-      <div className="container mx-auto max-w-2xl py-8 px-4">
-        <h1 className="text-2xl font-bold mb-6">Create deck</h1>
+      <div className="container mx-auto max-w-2xl px-4 py-8">
+        <h1 className="mb-6 text-2xl font-bold">
+          {initialValues ? "Edit deck" : "Create deck"}
+        </h1>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <Input placeholder="Title" {...register("title")} />
+
           <Textarea
             rows={3}
             placeholder="Description"
@@ -63,7 +97,7 @@ export function CreateDeckPage() {
           {/* Tag chooser */}
           <div className="space-y-2">
             <p className="text-sm">Tags</p>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex flex-wrap gap-2">
               {tagList?.map((t) => {
                 const active = watch("tags").includes(t.name);
                 return (
@@ -88,13 +122,13 @@ export function CreateDeckPage() {
             </div>
           </div>
 
-          {/* Thumbnail URL input (skip upload UI for brevity) */}
+          {/* Thumbnail (URL for now – could be replaced with upload widget) */}
           <Input placeholder="Thumbnail URL" {...register("thumbnailUrl")} />
 
-          {/* Snippets */}
+          {/* Snippets array UI */}
           <div className="space-y-4">
             {fields.map((f, i) => (
-              <div key={f.id} className="border rounded p-4 space-y-2">
+              <div key={f.id} className="space-y-2 rounded border p-4">
                 <Input
                   placeholder="Language"
                   {...register(`snippets.${i}.language`)}
@@ -108,8 +142,10 @@ export function CreateDeckPage() {
                   placeholder="Code"
                   {...register(`snippets.${i}.code`)}
                 />
+
                 {fields.length > 1 && (
                   <Button
+                    type="button"
                     variant="destructive"
                     size="sm"
                     onClick={() => remove(i)}
@@ -119,6 +155,7 @@ export function CreateDeckPage() {
                 )}
               </div>
             ))}
+
             <Button
               type="button"
               onClick={() => append({ language: "", caption: "", code: "" })}
@@ -127,7 +164,9 @@ export function CreateDeckPage() {
             </Button>
           </div>
 
-          <Button disabled={createMut.isLoading}>Publish</Button>
+          <Button disabled={isSubmitting || createMut.isLoading}>
+            {submitLabel}
+          </Button>
         </form>
       </div>
     </>

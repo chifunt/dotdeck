@@ -1,41 +1,61 @@
+/**
+ * @file Two-row search widget:
+ * • Row 1 – text input + search button + (future) filters button
+ * • Row 2 – random sample of “demo” tags, collapses when sticky
+ */
+
 import { useEffect, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Search, SlidersHorizontal } from "lucide-react";
 import clsx from "clsx";
 
-const demoTags = ["javascript", "react", "css", "mysql", "python", "go"];
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
+/** Placeholder until the real tag endpoint powers this. */
+const DEMO_TAGS = ["javascript", "react", "css", "mysql", "python", "go"];
+
+/**
+ * @param {{
+ *   onChange: (params: { q?: string; tag?: string }) => void;
+ * }} props
+ */
 export function SearchBar({ onChange }) {
   const [text, setText] = useState("");
-  const [tags, setTags] = useState([]);
-  const barRef = useRef(null);
+  const [activeTags, setActiveTags] = useState(/** @type{string[]} */ ([]));
 
-  // shrink into navbar on scroll
+  /** External sticky class toggled by scroll position. */
+  const ref = useRef(/** @type{HTMLDivElement|null} */ (null));
+
+  /*──────────────────────── Sticky collapse logic ────────────────────────*/
   useEffect(() => {
-    const handler = () =>
-      barRef.current?.classList.toggle("sticky", window.scrollY > 120);
-    window.addEventListener("scroll", handler);
-    return () => window.removeEventListener("scroll", handler);
+    const onScroll = () =>
+      ref.current?.classList.toggle("sticky", window.scrollY > 120);
+
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const toggleTag = (t) => {
-    setTags((cur) => {
-      const next = cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t];
-      onChange({ q: text, tag: next[0] }); // simple demo behaviour
+  /*──────────────────────── Tag toggle handler ───────────────────────────*/
+  const toggleTag = (t) =>
+    setActiveTags((prev) => {
+      const next = prev.includes(t)
+        ? prev.filter((x) => x !== t)
+        : [...prev, t];
+      // Emit first tag only – backend currently supports a single “tag” param.
+      onChange({ q: text, tag: next[0] });
       return next;
     });
-  };
 
+  /*──────────────────────── Render ───────────────────────────────────────*/
   return (
     <div
-      ref={barRef}
+      ref={ref}
       className={clsx(
-        "bg-rosePine-base mb-6 transition-all",
-        "sticky top-0 z-30 py-4 space-y-4",
+        "sticky top-0 z-30 space-y-4 bg-rosePine-base py-4 transition-all",
       )}
     >
+      {/* Row 1 – input + buttons */}
       <div className="flex gap-2">
         <Input
           placeholder="Search decks…"
@@ -43,25 +63,30 @@ export function SearchBar({ onChange }) {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onChange({ q: text })}
         />
+
         <Button size="icon" onClick={() => onChange({ q: text })}>
           <Search size={18} />
         </Button>
-        <Button variant="secondary" size="icon">
+
+        <Button
+          variant="secondary"
+          size="icon"
+          aria-label="Filter (coming soon)"
+        >
           <SlidersHorizontal size={18} />
         </Button>
       </div>
 
-      {/* second row (hide when sticky) */}
-      <div className="search-tags flex gap-2 overflow-x-auto">
-        {demoTags
-          .sort(() => 0.5 - Math.random())
+      {/* Row 2 – quick-tag bar (hidden when sticky) */}
+      <div className="search-tags flex overflow-x-auto gap-2">
+        {DEMO_TAGS.sort(() => 0.5 - Math.random())
           .slice(0, 6)
           .map((t) => (
             <Badge
               key={t}
               onClick={() => toggleTag(t)}
-              variant={tags.includes(t) ? "default" : "outline"}
-              className="cursor-pointer select-none"
+              variant={activeTags.includes(t) ? "default" : "outline"}
+              className="select-none cursor-pointer"
             >
               {t}
             </Badge>

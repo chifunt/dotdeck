@@ -1,26 +1,35 @@
+/**
+ * @file Top-level navigation bar:
+ *   • Brand (left)
+ *   • “Create” button (hidden on /decks/new & /decks/:slug/edit)
+ *   • Avatar (when logged in)
+ *   • Burger pop-over (always – holds profile / auth links)
+ */
+
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "../hooks/use-auth";
 import { Menu } from "lucide-react";
+import clsx from "clsx";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@radix-ui/react-popover";
-import clsx from "clsx";
+
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const loc = useLocation();
 
-  // Hide the create button on /decks/new and /decks/:slug/edit
+  /* Hide “Create” on the create + edit routes */
   const hideCreate = /^\/decks\/(new|[^/]+\/edit)$/.test(loc.pathname);
 
-  /* ─────────────────────────  Popover body  ───────────────────────── */
+  /* ──────────────── Shared pop-over panel ──────────────── */
   const MenuPopover = () => (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" aria-label="Menu">
           <Menu />
         </Button>
       </PopoverTrigger>
@@ -28,13 +37,12 @@ export function Navbar() {
       <PopoverContent
         sideOffset={8}
         align="end"
-        className="z-50 w-44 rounded-md border border-border
-              bg-popover text-popover-foreground shadow-md
-              flex flex-col gap-1 p-2
-              data-[state=open]:animate-in
-              data-[state=closed]:animate-out
-              data-[state=open]:fade-in-0
-              data-[state=closed]:fade-out-0"
+        className={clsx(
+          "z-50 w-44 rounded-md border border-border bg-popover text-popover-foreground shadow-md",
+          "flex flex-col gap-1 p-2",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+        )}
       >
         {user ? (
           <>
@@ -72,16 +80,16 @@ export function Navbar() {
     </Popover>
   );
 
-  /* ─────────────────────────  Render  ───────────────────────── */
+  /* ──────────────── Render ──────────────── */
   return (
     <header className="sticky top-0 z-40 bg-rosePine-surface/80 backdrop-blur">
       <nav className="container mx-auto flex items-center justify-between px-4 py-3">
-        {/* LEFT – brand/home link */}
-        <Link to="/" className="font-bold text-xl">
+        {/* Brand / home link */}
+        <Link to="/" className="text-xl font-bold">
           dotdeck
         </Link>
 
-        {/* RIGHT – everything else */}
+        {/* Right-hand icons */}
         <div className="flex items-center gap-3">
           {!hideCreate && (
             <Link to="/decks/new">
@@ -99,7 +107,7 @@ export function Navbar() {
             </Link>
           )}
 
-          {/* Burger menu (always present) */}
+          {/* Burger (present for guests & users) */}
           <MenuPopover />
         </div>
       </nav>

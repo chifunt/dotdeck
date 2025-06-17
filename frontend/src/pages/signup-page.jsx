@@ -1,11 +1,16 @@
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+/**
+ * @file Registration form – username/e-mail/password, zod-validated.
+ */
+
 import { useForm } from "react-hook-form";
-import { useAuth } from "../hooks/use-auth";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useNavigate, Link } from "react-router-dom";
+import { toast } from "sonner";
+
+import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useNavigate, Link } from "react-router-dom";
 
 const schema = z.object({
   username: z.string().min(3),
@@ -16,10 +21,11 @@ const schema = z.object({
 export function SignupPage() {
   const { signup } = useAuth();
   const nav = useNavigate();
+
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(schema) });
 
   const onSubmit = async (vals) => {
@@ -34,16 +40,19 @@ export function SignupPage() {
 
   return (
     <div className="flex flex-col items-center py-24">
-      <h1 className="text-2xl font-bold mb-6">Sign up</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-80">
+      <h1 className="mb-6 text-2xl font-bold">Sign up</h1>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="w-80 space-y-4">
         <Input placeholder="Username" {...register("username")} />
         {errors.username && (
           <p className="text-xs text-red-500">{errors.username.message}</p>
         )}
+
         <Input placeholder="Email" {...register("email")} />
         {errors.email && (
           <p className="text-xs text-red-500">{errors.email.message}</p>
         )}
+
         <Input
           type="password"
           placeholder="Password"
@@ -52,9 +61,13 @@ export function SignupPage() {
         {errors.password && (
           <p className="text-xs text-red-500">{errors.password.message}</p>
         )}
-        <Button className="w-full">Create account</Button>
+
+        <Button className="w-full" disabled={isSubmitting}>
+          Create account
+        </Button>
       </form>
-      <p className="text-sm mt-6">
+
+      <p className="mt-6 text-sm">
         Already have an account?{" "}
         <Link to="/login" className="underline">
           Login
