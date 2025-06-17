@@ -28,7 +28,7 @@ export function DeckDetailPage() {
   if (isLoading) return <p className="py-12 text-center">Loading…</p>;
   if (!deck) return <p className="py-12 text-center">Not found</p>;
 
-  const owner = user?.id === deck.userId;
+  const owner = user?.id === deck.user?.id || user?.id === deck.userId;
 
   /* -------------------------------------------------------------------- */
   /* normalise optional arrays so we can map() safely                      */

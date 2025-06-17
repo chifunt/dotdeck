@@ -249,6 +249,10 @@ h6 {
 .search-tags {
   transition: max-height 0.25s ease;
 }
+.shrink .search-tags {
+  max-height: 0;
+  overflow: hidden;
+}
 .sticky .search-tags {
   max-height: 0;
   overflow: hidden;
