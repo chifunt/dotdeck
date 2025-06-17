@@ -39,6 +39,10 @@ export default {
         lg: "var(--radius)",
         xl: "calc(var(--radius) + 4px)",
       },
+      fontFamily: {
+        sans: ['"ChiosevkaTermext Web"', "ui-sans-serif", "system-ui"],
+        mono: ['"ChiosevkaTermext Web"', "ui-monospace", "SFMono-Regular"],
+      },
     },
   },
   plugins: [animate],
