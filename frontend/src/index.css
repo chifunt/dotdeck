@@ -267,3 +267,7 @@ h6 {
     @apply bg-background text-foreground;
   }
 }
+
+.border-input {
+  @apply border-dashed;
+}

@@ -1,9 +1,7 @@
 /**
- * @file Form wizard used for *both* “create” **and** “edit**” flows
- * (the edit page just injects `initialValues` + a custom onSubmit).
+ * @file Form wizard used for both “create” *and* “edit” flows.
  */
-
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
@@ -11,18 +9,29 @@ import { toast } from "sonner";
 
 import { useCreateDeck } from "@/features/decks/mutations";
 import { useTags } from "@/features/tags/use-tags";
+import { uploadThumbnail } from "@/lib/uploads";
 
 import { Navbar } from "@/layouts/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ThumbnailUploader } from "@/components/thumbnail-uploader";
 import { Textarea } from "@/components/ui/textarea";
 
-/*──────────────────────── Validation schema (Zod) ────────────────────────*/
+/* ──────────────────── Validation schema ──────────────────── */
+/**
+ * **Important note** – `thumbnailFile` is declared so Zod keeps it,
+ * otherwise React-Hook-Form would hand us an object *without* that key.
+ */
 const schema = z.object({
   title: z.string().min(3),
   description: z.string().min(3),
   tags: z.array(z.string()).max(25),
-  thumbnailUrl: z.string().url().optional(),
+  thumbnailUrl: z
+    .string()
+    .url()
+    .optional()
+    .or(z.literal("").transform(() => undefined)), // empty → undefined
+  thumbnailFile: z.any().optional(), // <── keep the File object
   snippets: z
     .array(
       z.object({
@@ -34,11 +43,7 @@ const schema = z.object({
     .min(1),
 });
 
-/**
- * Generic deck-editor page.
- * If `initialValues` & `onSubmit` are passed (Edit page),
- * it becomes a pre-filled “edit” form.
- */
+/* ───────────────────── Component ─────────────────────────── */
 export function CreateDeckPage({
   initialValues,
   submitLabel = "Publish",
@@ -58,8 +63,12 @@ export function CreateDeckPage({
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: initialValues ?? {
+      title: "",
+      description: "",
       tags: [],
       snippets: [{ language: "", caption: "", code: "" }],
+      thumbnailFile: undefined,
+      thumbnailUrl: undefined,
     },
   });
 
@@ -68,15 +77,33 @@ export function CreateDeckPage({
     name: "snippets",
   });
 
-  /* Actual submit handler */
+  /* ──────────────── Submit handler ─────────────────────── */
   const onSubmit = async (vals) => {
-    const mutFn = externalSubmit ?? createMut.mutateAsync;
-    const { id } = await mutFn(vals);
+    /* 1 – upload if the user picked a local file */
+    let url = vals.thumbnailUrl;
+    if (vals.thumbnailFile instanceof File) {
+      try {
+        url = await uploadThumbnail(vals.thumbnailFile);
+      } catch (e) {
+        toast.error(e.response?.data?.message || "Thumbnail upload failed");
+        return; // abort save
+      }
+    }
+
+    /* 2 – build payload (strip the File) */
+    const payload = {
+      ...vals,
+      thumbnailUrl: url,
+      thumbnailFile: undefined,
+    };
+
+    /* 3 – send to create or external (edit) mutation */
+    const { id } = await (externalSubmit ?? createMut.mutateAsync)(payload);
     toast.success("Saved!");
     if (!externalSubmit) nav(`/decks/${id}`);
   };
 
-  /*──────────────────────── Render ────────────────────────*/
+  /* ───────────────────── Render ─────────────────────────── */
   return (
     <>
       <Navbar />
@@ -87,14 +114,13 @@ export function CreateDeckPage({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <Input placeholder="Title" {...register("title")} />
-
           <Textarea
             rows={3}
             placeholder="Description"
             {...register("description")}
           />
 
-          {/* Tag chooser */}
+          {/* Tag chooser ------------------------------------------------------- */}
           <div className="space-y-2">
             <p className="text-sm">Tags</p>
             <div className="flex flex-wrap gap-2">
@@ -122,10 +148,19 @@ export function CreateDeckPage({
             </div>
           </div>
 
-          {/* Thumbnail (URL for now – could be replaced with upload widget) */}
-          <Input placeholder="Thumbnail URL" {...register("thumbnailUrl")} />
+          {/* Thumbnail --------------------------------------------------------- */}
+          <Controller
+            name="thumbnailFile"
+            control={control}
+            render={({ field }) => (
+              <ThumbnailUploader
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
 
-          {/* Snippets array UI */}
+          {/* Snippets array ---------------------------------------------------- */}
           <div className="space-y-4">
             {fields.map((f, i) => (
               <div key={f.id} className="space-y-2 rounded border p-4">
