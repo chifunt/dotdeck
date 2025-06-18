@@ -4,6 +4,7 @@
 
 import { DeckModel } from "../models/deck.model.js";
 import { DeckService } from "../services/deck.service.js";
+import { TagModel } from "../models/tag.model.js";
 
 export const DeckController = {
   list: async (req, res, next) => {
@@ -19,8 +20,8 @@ export const DeckController = {
         offset,
       });
 
-      // map each row into { …deckFields, author: { id, username } }
-      const decksWithAuthor = data.map((d) => ({
+      // 1️⃣ start from decksWithAuthor…
+      const decks = data.map((d) => ({
         id: d.id,
         title: d.title,
         slug: d.slug,
@@ -35,8 +36,15 @@ export const DeckController = {
         dislikes: d.dislikes,
       }));
 
+      // 2️⃣ …then add tags onto each deck object
+      await Promise.all(
+        decks.map(async (deck) => {
+          deck.tags = await TagModel.getByDeck(deck.id);
+        }),
+      );
+
       res.json({
-        data: decksWithAuthor,
+        data: decks,
         paging: { limit, offset, total },
       });
     } catch (err) {
