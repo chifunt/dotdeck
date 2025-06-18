@@ -653,7 +653,7 @@ paths:
   # backward‐compat alias for old /admin/audit
   /admin/audit:
     get:
-      summary: **(deprecated)** List audit entries (redirects to /admin/audit-logs)
+      summary: List audit entries (redirects to /admin/audit-logs)
       tags: [Admin]
       security:
         - bearerAuth: []
