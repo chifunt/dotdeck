@@ -11,7 +11,7 @@ export const RatingController = {
         return res.status(422).json({ message: "Score must be 1 or -1" });
 
       await RatingModel.set(req.user.id, req.params.id, score);
-      const totals = await RatingModel.totals(req.params.id);
+      const totals = await RatingModel.totals(req.params.id, req.user.id);
       res.json(totals);
     } catch (err) {
       next(err);
@@ -20,7 +20,7 @@ export const RatingController = {
 
   async totals(req, res, next) {
     try {
-      const totals = await RatingModel.totals(req.params.id);
+      const totals = await RatingModel.totals(req.params.id, req.user?.id);
       res.json(totals);
     } catch (err) {
       next(err);

@@ -1,13 +1,14 @@
 /**
- * @file Full deck view – screenshot, description, up/down-votes,
- * code snippets, comment thread, edit/delete for the owner.
+ * @file Full deck view: thumbnail, description, vote toggle,
+ * snippets, comment thread, owner actions.
  */
 
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ThumbsUp, ThumbsDown, Edit, Trash } from "lucide-react";
 
 import { useDeck } from "@/features/decks/use-decks";
-import { useVoteDeck, useDeleteDeck } from "@/features/decks/mutations";
+import { useDeleteDeck } from "@/features/decks/mutations";
+import { useRatings, useToggleVote } from "@/features/ratings/use-ratings";
 import {
   useComments,
   useCreateComment,
@@ -27,9 +28,12 @@ export function DeckDetailPage() {
   const nav = useNavigate();
   const { user } = useAuth();
 
+  /* ── data ───────────────────────────────────────────────────── */
   const { data: deck, isLoading } = useDeck(slug);
+  const { data: ratings } = useRatings(deck?.id);
+  const toggleVote = useToggleVote(deck?.id);
+
   const { data: comments } = useComments(deck?.id);
-  const voteMut = useVoteDeck(deck?.id);
   const createComment = useCreateComment(deck?.id);
   const deleteDeck = useDeleteDeck(deck?.id);
   const deleteComment = useDeleteComment(deck?.id);
@@ -37,16 +41,24 @@ export function DeckDetailPage() {
   if (isLoading) return <p className="py-12 text-center">Loading…</p>;
   if (!deck) return <p className="py-12 text-center">Not found</p>;
 
-  const owner = user?.id === deck.user?.id || user?.id === deck.userId;
-
+  const owner = user?.id === deck.userId || user?.id === deck.user?.id;
   const tags = Array.isArray(deck.tags) ? deck.tags : [];
   const snippets = Array.isArray(deck.snippets) ? deck.snippets : [];
 
-  /*──────────────────────── Render ────────────────────────*/
+  /* current vote helpers */
+  // not authenticated → treat as no vote and block click-through
+  const my = user ? (ratings?.myVote ?? 0) : 0;
+  const onUp = () => user && toggleVote.mutate(my === 1 ? 0 : 1);
+  const onDown = () => user && toggleVote.mutate(my === -1 ? 0 : -1);
+  const btnDisabled = !user;
+
+  /* ── render ─────────────────────────────────────────────────── */
   return (
     <>
       <Navbar />
+
       <div className="container mx-auto max-w-3xl space-y-6 px-4 py-8">
+        {/* Thumbnail */}
         <img
           src={deck.thumbnailUrl}
           alt=""
@@ -56,25 +68,29 @@ export function DeckDetailPage() {
         {/* Title + votes */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">{deck.title}</h1>
+
           <div className="flex items-center gap-1 text-sm">
             <Button
-              variant="ghost"
+              variant={my === 1 ? "default" : "ghost"}
               size="icon"
-              onClick={() => voteMut.mutate(1)}
               aria-label="Up-vote"
+              disabled={btnDisabled}
+              onClick={onUp}
             >
               <ThumbsUp size={18} />
             </Button>
-            {deck.upvotes}
+            {ratings?.upvotes ?? deck.upvotes}
+
             <Button
-              variant="ghost"
+              variant={my === -1 ? "destructive" : "ghost"}
               size="icon"
-              onClick={() => voteMut.mutate(-1)}
               aria-label="Down-vote"
+              disabled={btnDisabled}
+              onClick={onDown}
             >
               <ThumbsDown size={18} />
             </Button>
-            {deck.downvotes}
+            {ratings?.downvotes ?? deck.downvotes}
           </div>
         </div>
 

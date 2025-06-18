@@ -10,7 +10,7 @@
  */
 
 const windows = {
-  auth: { size: 60 * 1000, max: 5 }, // 5 per minute
+  auth: { size: 60 * 1000, max: 20 }, // 5 per minute
   api: { size: 60 * 1000, max: 100 }, // 100 per minute
 };
 

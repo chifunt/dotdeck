@@ -12,6 +12,7 @@ import { CreateDeckPage } from "@/pages/create-deck-page";
 import { EditDeckPage } from "@/pages/edit-deck-page";
 import { ProfilePage } from "@/pages/profile-page";
 import { AdminPage } from "@/pages/admin-page";
+import { ModerationPage } from "./pages/moderation-page";
 import { NotFoundPage } from "@/pages/not-found-page";
 
 import { RequireAuth } from "@/features/auth/require-auth";
@@ -44,6 +45,7 @@ export function Router() {
       {/* Users & admin */}
       <Route path="/u/:username" element={<ProfilePage />} />
       <Route path="/admin/*" element={<AdminPage />} />
+      <Route path="/moderation" element={<ModerationPage />} />
 
       {/* 404 fallback */}
       <Route path="*" element={<NotFoundPage />} />

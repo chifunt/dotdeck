@@ -9,6 +9,7 @@ import { Toaster } from "sonner";
 
 import { queryClient } from "@/lib/query-client";
 import { Router } from "@/router";
+import { ErrorBoundary } from "react-error-boundary";
 
 /**
  * Root React component – never unmounts during the session.
@@ -19,7 +20,11 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Router />
+        <ErrorBoundary
+          fallback={<p className="p-8 text-center">Something went wrong.</p>}
+        >
+          <Router />
+        </ErrorBoundary>
       </BrowserRouter>
 
       {/* Global toast notifications (top-right, Rose Pine colours). */}
