@@ -36,14 +36,21 @@ export function SearchBar({ onChange }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  /* small helper – fires search only when the query is non-empty */
+  const fireSearch = () => {
+    const q = text.trim();
+    onChange(q ? { q } : {}); // ← no `q` key when empty
+  };
+
   /*──────────────────────── Tag toggle handler ───────────────────────────*/
   const toggleTag = (t) =>
     setActiveTags((prev) => {
       const next = prev.includes(t)
         ? prev.filter((x) => x !== t)
         : [...prev, t];
-      // Emit first tag only – backend currently supports a single “tag” param.
-      onChange({ q: text, tag: next[0] });
+      // include the query only when it has characters
+      const q = text.trim();
+      onChange({ tag: next[0], ...(q ? { q } : {}) });
       return next;
     });
 
@@ -61,10 +68,10 @@ export function SearchBar({ onChange }) {
           placeholder="Search decks…"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onChange({ q: text })}
+          onKeyDown={(e) => e.key === "Enter" && fireSearch()}
         />
 
-        <Button size="icon" onClick={() => onChange({ q: text })}>
+        <Button size="icon" onClick={fireSearch}>
           <Search size={18} />
         </Button>
 
