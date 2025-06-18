@@ -57,7 +57,14 @@ export const DeckController = {
     try {
       const deck = await DeckModel.getById(req.params.id);
       if (!deck) return res.status(404).json({ message: "Deck not found" });
-      res.json(deck);
+
+      // fetch and attach tags
+      const tags = await TagModel.getByDeck(req.params.id);
+
+      res.json({
+        ...deck,
+        tags,
+      });
     } catch (err) {
       next(err);
     }
@@ -67,7 +74,14 @@ export const DeckController = {
     try {
       const deck = await DeckModel.getBySlug(req.params.slug);
       if (!deck) return res.status(404).json({ message: "Deck not found" });
-      res.json(deck);
+
+      // fetch and attach tags
+      const tags = await TagModel.getByDeck(deck.id);
+
+      res.json({
+        ...deck,
+        tags,
+      });
     } catch (err) {
       next(err);
     }

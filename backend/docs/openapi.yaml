@@ -170,27 +170,24 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "500": { $ref: "#/components/responses/ServerError" }
 
-    paths:
-      /decks/slug/{slug}:
-        get:
-          summary: Get a deck by its slug (with code snippets)
-          tags: [Decks]
-          parameters:
-            - in: path
-              name: slug
-              required: true
-              schema: { type: string }
-          responses:
-            "200":
-              description: Deck with full metadata and its code snippets
-              content:
-                application/json:
-                  schema:
-                    $ref: "#/components/schemas/DeckDetail"
-            "404":
-              $ref: "#/components/responses/NotFound"
-            "500":
-              $ref: "#/components/responses/ServerError"
+  /decks/slug/{slug}:
+    get:
+      summary: Get a deck by its slug (with code snippets)
+      tags: [Decks]
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deck with full metadata and its code snippets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeckDetail"
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /decks/thumbnail:
     post:
@@ -422,12 +419,49 @@ paths:
             examples:
               TagCreate: { value: { name: "rust", tagType: 2 } }
       responses:
-        "201": { $ref: "#/components/responses/DeckCreated" } # same `{ id }` envelope
+        "201": { $ref: "#/components/responses/DeckCreated" }
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "422": { $ref: "#/components/responses/ValidationError" }
         "500": { $ref: "#/components/responses/ServerError" }
+
+    get:
+      summary: List tags (paginated)
+      tags: [Admin]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Paginated list of tags
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Tag"
+                  paging:
+                    type: object
+                    properties:
+                      limit: { type: integer }
+                      offset: { type: integer }
+                      total: { type: integer }
 
   /admin/tags/{id}/approve:
     parameters:
@@ -476,7 +510,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Total counts for key resources
           content:
             application/json:
@@ -515,7 +549,7 @@ paths:
             minimum: 0
             default: 0
       responses:
-        '200':
+        "200":
           description: Paginated list of users
           content:
             application/json:
@@ -525,13 +559,13 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: "#/components/schemas/User"
                   paging:
                     type: object
                     properties:
                       limit: { type: integer }
                       offset: { type: integer }
-                      total:  { type: integer }
+                      total: { type: integer }
 
   /admin/decks:
     get:
@@ -554,7 +588,7 @@ paths:
             minimum: 0
             default: 0
       responses:
-        '200':
+        "200":
           description: Paginated list of decks
           content:
             application/json:
@@ -564,52 +598,13 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/DeckSummary'
+                      $ref: "#/components/schemas/DeckSummary"
                   paging:
                     type: object
                     properties:
                       limit: { type: integer }
                       offset: { type: integer }
-                      total:  { type: integer }
-
-  /admin/tags:
-    get:
-      summary: List tags (paginated)
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 1000
-            default: 50
-        - in: query
-          name: offset
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-      responses:
-        '200':
-          description: Paginated list of tags
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Tag'
-                  paging:
-                    type: object
-                    properties:
-                      limit: { type: integer }
-                      offset: { type: integer }
-                      total:  { type: integer }
+                      total: { type: integer }
 
   /admin/audit-logs:
     get:
@@ -632,7 +627,7 @@ paths:
             minimum: 0
             default: 0
       responses:
-        '200':
+        "200":
           description: Paginated audit feed
           content:
             application/json:
@@ -642,13 +637,13 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/AuditRow'
+                      $ref: "#/components/schemas/AuditRow"
                   paging:
                     type: object
                     properties:
                       limit: { type: integer }
                       offset: { type: integer }
-                      total:  { type: integer }
+                      total: { type: integer }
 
   # backward‐compat alias for old /admin/audit
   /admin/audit:
@@ -658,7 +653,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '307':
+        "307":
           description: Temporary redirect to /admin/audit-logs
 
   ############################################################
@@ -774,6 +769,16 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CodeSnippet"
+
+    DeckDetail:
+      allOf:
+        - $ref: "#/components/schemas/DeckSummary"
+        - type: object
+          properties:
+            tags:
+              type: array
+              items:
+                $ref: "#/components/schemas/Tag"
 
     DeckCreate:
       type: object
@@ -919,10 +924,11 @@ components:
             DeckList: { $ref: "#/components/examples/DeckList" }
 
     DeckDetail:
-      description: Deck with metadata
+      description: Deck with full metadata, code snippets & tags
       content:
         application/json:
-          schema: { $ref: "#/components/schemas/DeckSummary" }
+          schema:
+            $ref: "#/components/schemas/DeckDetail"
 
     DeckCreated:
       description: Created deck id

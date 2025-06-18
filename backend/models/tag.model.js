@@ -48,6 +48,23 @@ export const TagModel = {
   },
 
   /**
+   * List tags associated with a given deck.
+   * @param {number} deckId
+   * @returns {Promise<Array<{id:number,name:string}>>}
+   */
+  async getByDeck(deckId) {
+    const [rows] = await db.query(
+      `SELECT t.id, t.name
+         FROM dotdeck_tag t
+         JOIN dotdeck_deck_tag dt ON dt.tag_id = t.id
+        WHERE dt.deck_id = ?
+        ORDER BY t.name`,
+      [deckId],
+    );
+    return rows;
+  },
+
+  /**
    * Fetch by exact name.
    * @param {string} name
    */
