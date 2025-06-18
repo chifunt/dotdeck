@@ -598,7 +598,7 @@ components:
           type: array
           items:
             type: object
-            required: [language, code]
+            required: [code]
             properties:
               language: { type: string }
               caption: { type: string }

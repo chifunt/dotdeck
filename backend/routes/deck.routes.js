@@ -50,10 +50,9 @@ deckRouter.post(
       .withMessage("snippets must be a non-empty array"),
     // per-item checks ↓
     body("snippets.*.language")
+      .optional({ nullable: true })
       .isString()
-      .bail()
-      .notEmpty()
-      .withMessage("language is required for each snippet"),
+      .withMessage("language, if provided, must be a string"),
     body("snippets.*.code")
       .isString()
       .bail()

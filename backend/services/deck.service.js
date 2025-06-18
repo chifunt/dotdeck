@@ -61,11 +61,12 @@ export const DeckService = {
 
       // --- code snippets
       for (const [idx, s] of payload.snippets.entries()) {
+        const lang = s.language ?? null;
         await conn.query(
           `INSERT INTO dotdeck_code_snippet
              (deck_id, language, caption, code, sort_order)
            VALUES (?,?,?,?,?)`,
-          [deckId, s.language, s.caption, s.code, idx],
+          [deckId, lang, s.caption, s.code, idx],
         );
       }
 
