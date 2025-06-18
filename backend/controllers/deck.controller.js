@@ -31,6 +31,8 @@ export const DeckController = {
           id: d.authorId,
           username: d.authorUsername,
         },
+        likes: d.likes,
+        dislikes: d.dislikes,
       }));
 
       res.json({

@@ -45,9 +45,16 @@ export const DeckModel = {
          d.description,
          d.thumbnail_url   AS thumbnailUrl,
          d.created_at      AS createdAt,
-         /* pull author info */
          u.id              AS authorId,
-         u.username        AS authorUsername
+         u.username        AS authorUsername,
+         /* total likes */
+         (SELECT COUNT(*) FROM dotdeck_rating r
+            WHERE r.deck_id = d.id AND r.score = 1
+         ) AS likes,
+         /* total dislikes */
+         (SELECT COUNT(*) FROM dotdeck_rating r
+            WHERE r.deck_id = d.id AND r.score = -1
+         ) AS dislikes
        FROM dotdeck_deck d
        JOIN dotdeck_user u ON u.id = d.user_id
        ${joinSql}

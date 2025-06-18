@@ -576,6 +576,12 @@ components:
         createdAt: { type: string, format: date-time }
         author:
           $ref: "#/components/schemas/User"
+        likes:
+          type: integer
+          example: 9
+        dislikes:
+          type: integer
+          example: 1
 
     DeckCreate:
       type: object
@@ -848,6 +854,8 @@ components:
             author:
               id: 7
               username: johndoe
+            likes: 9
+            dislikes: 1
         paging: { limit: 20, offset: 0, total: 1 }
 
     CommentPayload:
