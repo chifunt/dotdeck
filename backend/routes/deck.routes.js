@@ -36,7 +36,10 @@ deckRouter.post(
   validate([
     body("title").isLength({ min: 3 }),
     body("description").optional().isString(),
-    body("thumbnailUrl").optional().isURL(),
+    body("thumbnailUrl")
+      .optional({ nullable: true })
+      .isString()
+      .withMessage("thumbnailUrl must be a URL or path string"),
     // ─── TAGS ──────────────────────────────────────────────
     // optional array, max 25 strings
     body("tags")
