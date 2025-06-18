@@ -574,6 +574,8 @@ components:
         description: { type: string }
         thumbnailUrl: { type: string, format: uri }
         createdAt: { type: string, format: date-time }
+        author:
+          $ref: "#/components/schemas/User"
 
     DeckCreate:
       type: object
@@ -843,6 +845,9 @@ components:
             description: Handy reference of Tailwind classes
             thumbnailUrl: /uploads/c2297e07.webp
             createdAt: 2024-05-01T12:34:56Z
+            author:
+              id: 7
+              username: johndoe
         paging: { limit: 20, offset: 0, total: 1 }
 
     CommentPayload:

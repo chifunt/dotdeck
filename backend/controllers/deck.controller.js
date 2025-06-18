@@ -19,8 +19,22 @@ export const DeckController = {
         offset,
       });
 
+      // map each row into { …deckFields, author: { id, username } }
+      const decksWithAuthor = data.map((d) => ({
+        id: d.id,
+        title: d.title,
+        slug: d.slug,
+        description: d.description,
+        thumbnailUrl: d.thumbnailUrl,
+        createdAt: d.createdAt,
+        author: {
+          id: d.authorId,
+          username: d.authorUsername,
+        },
+      }));
+
       res.json({
-        data,
+        data: decksWithAuthor,
         paging: { limit, offset, total },
       });
     } catch (err) {

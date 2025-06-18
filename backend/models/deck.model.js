@@ -38,11 +38,20 @@ export const DeckModel = {
 
     // 1. data slice
     const [rows] = await db.query(
-      `SELECT d.*, u.username
-         FROM dotdeck_deck d
-         JOIN dotdeck_user u ON u.id = d.user_id
-         ${joinSql}
-         ${whereSql}
+      `SELECT
+         d.id,
+         d.title,
+         d.slug,
+         d.description,
+         d.thumbnail_url   AS thumbnailUrl,
+         d.created_at      AS createdAt,
+         /* pull author info */
+         u.id              AS authorId,
+         u.username        AS authorUsername
+       FROM dotdeck_deck d
+       JOIN dotdeck_user u ON u.id = d.user_id
+       ${joinSql}
+       ${whereSql}
        ORDER BY d.created_at DESC
        LIMIT ? OFFSET ?`,
       params,
