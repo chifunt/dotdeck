@@ -77,14 +77,52 @@ export const DeckModel = {
   },
 
   async getById(id) {
+    // 1️⃣ Fetch the deck metadata + author
     const [[deck]] = await db.query(
-      `SELECT d.*, u.username
+      `SELECT
+         d.id,
+         d.title,
+         d.slug,
+         d.description,
+         d.thumbnail_url   AS thumbnailUrl,
+         d.created_at      AS createdAt,
+         u.id              AS authorId,
+         u.username        AS authorUsername
        FROM dotdeck_deck d
        JOIN dotdeck_user u ON u.id = d.user_id
        WHERE d.id = ? AND d.deleted_at IS NULL`,
       [id],
     );
-    return deck;
+    if (!deck) return null;
+
+    // 2️⃣ Fetch its code snippets
+    const [snippets] = await db.query(
+      `SELECT
+         id,
+         language,
+         caption,
+         code,
+         sort_order AS sortOrder
+       FROM dotdeck_code_snippet
+       WHERE deck_id = ?
+       ORDER BY sort_order`,
+      [id],
+    );
+
+    // 3️⃣ Merge and return
+    return {
+      id: deck.id,
+      title: deck.title,
+      slug: deck.slug,
+      description: deck.description,
+      thumbnailUrl: deck.thumbnailUrl,
+      createdAt: deck.createdAt,
+      author: {
+        id: deck.authorId,
+        username: deck.authorUsername,
+      },
+      snippets, // ← array of { id, language, caption, code, sortOrder }
+    };
   },
 
   async delete(id, userId) {
@@ -153,14 +191,48 @@ export const DeckModel = {
   },
 
   async getBySlug(slug) {
+    // 1️⃣ Fetch the deck metadata + author
     const [[deck]] = await db.query(
-      `SELECT d.*, u.username
-         FROM dotdeck_deck d
-         JOIN dotdeck_user u ON u.id = d.user_id
-        WHERE d.slug = ? AND d.deleted_at IS NULL`,
+      `SELECT
+         d.id,
+         d.user_id      AS userId,
+         d.title,
+         d.slug,
+         d.description,
+         d.thumbnail_url   AS thumbnailUrl,
+         d.created_at      AS createdAt,
+         d.updated_at      AS updatedAt,
+         u.username        AS authorUsername
+       FROM dotdeck_deck d
+       JOIN dotdeck_user u ON u.id = d.user_id
+       WHERE d.slug = ? AND d.deleted_at IS NULL`,
       [slug],
     );
-    return deck;
+    if (!deck) return null;
+
+    // 2️⃣ Fetch its code snippets
+    const [snippets] = await db.query(
+      `SELECT
+         id,
+         language,
+         caption,
+         code,
+         sort_order AS sortOrder
+       FROM dotdeck_code_snippet
+       WHERE deck_id = ?
+       ORDER BY sort_order`,
+      [deck.id],
+    );
+
+    // 3️⃣ Merge and return
+    return {
+      ...deck,
+      author: {
+        id: deck.userId,
+        username: deck.authorUsername,
+      },
+      snippets,
+    };
   },
 
   /**

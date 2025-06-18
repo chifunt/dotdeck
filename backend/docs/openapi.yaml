@@ -132,7 +132,12 @@ paths:
       summary: Get a single deck
       tags: [Decks]
       responses:
-        "200": { $ref: "#/components/responses/DeckDetail" }
+        "200":
+          description: Deck with full metadata and its code snippets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeckDetail"
         "404": { $ref: "#/components/responses/NotFound" }
         "500": { $ref: "#/components/responses/ServerError" }
 
@@ -165,19 +170,27 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "500": { $ref: "#/components/responses/ServerError" }
 
-  /decks/slug/{slug}:
-    parameters:
-      - in: path
-        name: slug
-        required: true
-        schema: { type: string }
-    get:
-      summary: Get a deck by its slug
-      tags: [Decks]
-      responses:
-        "200": { $ref: "#/components/responses/DeckDetail" }
-        "404": { $ref: "#/components/responses/NotFound" }
-        "500": { $ref: "#/components/responses/ServerError" }
+    paths:
+      /decks/slug/{slug}:
+        get:
+          summary: Get a deck by its slug (with code snippets)
+          tags: [Decks]
+          parameters:
+            - in: path
+              name: slug
+              required: true
+              schema: { type: string }
+          responses:
+            "200":
+              description: Deck with full metadata and its code snippets
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/DeckDetail"
+            "404":
+              $ref: "#/components/responses/NotFound"
+            "500":
+              $ref: "#/components/responses/ServerError"
 
   /decks/thumbnail:
     post:
@@ -582,6 +595,10 @@ components:
         dislikes:
           type: integer
           example: 1
+        snippets:
+          type: array
+          items:
+            $ref: "#/components/schemas/CodeSnippet"
 
     DeckCreate:
       type: object
@@ -603,6 +620,27 @@ components:
               language: { type: string }
               caption: { type: string }
               code: { type: string }
+
+    CodeSnippet:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        language:
+          type: string
+          nullable: true
+          example: html
+        caption:
+          type: string
+          nullable: true
+          example: Minimal page
+        code:
+          type: string
+          example: '<div class="foo"></div>'
+        sortOrder:
+          type: integer
+          example: 0
 
     AuditRow:
       type: object
