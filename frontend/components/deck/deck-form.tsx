@@ -231,6 +231,7 @@ export function DeckForm({
                             width={200}
                             height={112}
                             className="mx-auto h-28 w-auto object-contain rounded"
+                            crossOrigin="anonymous"
                           />
                         ) : (
                           <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
