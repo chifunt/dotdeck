@@ -29,6 +29,7 @@ import { formatDistanceToNow, format } from "date-fns";
 import { getImageUrl } from "@/lib/get-image-url";
 import { useState } from "react";
 import { AnimatedButton } from "@/components/ui/animated-button";
+import { Trash } from "lucide-react";
 
 const fetchDeckBySlug = async (slugOrId: string): Promise<any> => {
   console.log("Fetching deck by slug/ID:", slugOrId);
@@ -164,7 +165,15 @@ function CodeSnippetDisplay({
   );
 }
 
-function CommentDisplay({ comment }: { comment: any }) {
+function CommentDisplay({
+  comment,
+  canDelete,
+  onDelete,
+}: {
+  comment: any;
+  canDelete: boolean;
+  onDelete: () => void;
+}) {
   // Safely parse the date with fallback for relative time
   const getFormattedDate = (dateString: any) => {
     if (!dateString) {
@@ -189,27 +198,49 @@ function CommentDisplay({ comment }: { comment: any }) {
 
   return (
     <div className="py-4 border-b last:border-b-0">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center space-x-2">
-          <UserIcon className="h-4 w-4 text-muted-foreground" />
-          {username !== "Unknown User" ? (
-            <Link
-              href={`/profile/${username}`}
-              className="font-semibold hover:text-primary transition-colors hover:underline"
-            >
-              {username}
-            </Link>
-          ) : (
-            <span className="font-semibold">{username}</span>
-          )}
+      {/* Flex container: left = content, right = delete button */}
+      <div className="flex items-start justify-between">
+        {/* Comment body */}
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center space-x-2">
+              <UserIcon className="h-4 w-4 text-muted-foreground" />
+              {username !== "Unknown User" ? (
+                <Link
+                  href={`/profile/${username}`}
+                  className="font-semibold hover:text-primary transition-colors hover:underline"
+                >
+                  {username}
+                </Link>
+              ) : (
+                <span className="font-semibold">{username}</span>
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {getFormattedDate(createdAt)}
+            </span>
+          </div>
+          <p className="text-sm">
+            {comment.body || comment.content || "No content"}
+          </p>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {getFormattedDate(createdAt)}
-        </span>
+
+        {/* Delete button, only if allowed */}
+        {canDelete && (
+          <AnimatedButton
+            variant="destructive"
+            size="icon"
+            onClick={() => {
+              if (confirm("Delete this comment?")) onDelete();
+            }}
+            animation="glow"
+            className="ml-4 flex-shrink-0"
+          >
+            <Trash className="h-4 w-4" />
+            <span className="sr-only">Delete comment</span>
+          </AnimatedButton>
+        )}
       </div>
-      <p className="text-sm">
-        {comment.body || comment.content || "No content"}
-      </p>
     </div>
   );
 }
@@ -295,6 +326,18 @@ export default function DeckDetailPage() {
     queryKey: ["comments", deck?.id],
     queryFn: () => fetchDeckComments(deck!.id),
     enabled: !!deck?.id,
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId: number) =>
+      api.delete(`/decks/${deck.id}/comments/${commentId}`),
+    onSuccess: () => {
+      toast.success("Comment deleted!");
+      queryClient.invalidateQueries({ queryKey: ["comments", deck?.id] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to delete comment.");
+    },
   });
 
   const {
@@ -600,16 +643,30 @@ export default function DeckDetailPage() {
           </p>
         )}
         <div className="space-y-4">
+          {/* Show skeletons while loading */}
           {isLoadingComments &&
             Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="h-16 w-full" />
             ))}
-          {(commentsData?.data || commentsData || []).map(
-            (comment: any, index: number) => (
-              <CommentDisplay key={comment.id || index} comment={comment} />
-            ),
-          )}
-          {(commentsData?.data || commentsData || []).length === 0 &&
+
+          {/* Normalize commentsData into an array */}
+          {(() => {
+            const commentList: any[] = commentsData?.data ?? commentsData ?? [];
+            return commentList.map((comment, idx) => {
+              const canDelete = user?.username === comment.username;
+              return (
+                <CommentDisplay
+                  key={comment.id ?? idx}
+                  comment={comment}
+                  canDelete={canDelete}
+                  onDelete={() => deleteCommentMutation.mutate(comment.id)}
+                />
+              );
+            });
+          })()}
+
+          {/* Empty state if no comments */}
+          {!(commentsData?.data ?? commentsData ?? []).length &&
             !isLoadingComments && <p>No comments yet.</p>}
         </div>
       </section>
