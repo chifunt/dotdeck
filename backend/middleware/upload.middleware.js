@@ -9,6 +9,7 @@ import sharp from "sharp";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
+import createHttpError from "http-errors";
 
 // ─────────────────────────────────────────
 // Config
@@ -19,10 +20,10 @@ const UPLOAD_DIR = join(process.cwd(), "uploads");
 if (!existsSync(UPLOAD_DIR)) mkdirSync(UPLOAD_DIR, { recursive: true });
 
 /** @constant {number} Maximum allowed upload size in bytes (2 MB) */
-const MAX_SIZE = 2 * 1024 * 1024;
+const MAX_SIZE = 10 * 1024 * 1024;
 
 /** @constant {RegExp} Allowed MIME types for image upload (GIF removed) */
-const ALLOWED = /^image\/(jpe?g|png|webp)$/;
+const ALLOWED = /^image\/(jpe?g|png|webp|heic|heif)$/;
 
 // ─────────────────────────────────────────
 // Multer (memory storage) → Sharp pipeline
@@ -89,3 +90,19 @@ export const uploadImage = [
     }
   },
 ];
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    // e.g. err.code === 'LIMIT_FILE_SIZE' or 'LIMIT_UNEXPECTED_FILE'
+    return res
+      .status(400)
+      .json({ error: err.message || "Invalid file upload" });
+  }
+  // propagate other http-errors
+  if (createHttpError.isHttpError(err)) {
+    return res.status(err.statusCode).json({ error: err.message });
+  }
+  // fallback to generic 500
+  console.error(err);
+  res.status(500).json({ error: "Internal server error" });
+});
