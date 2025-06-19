@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { api } from "@/lib/axios-instance";
 import type { DeckCreatePayload, DeckDetail } from "@/types";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,6 +47,7 @@ const fetchDeckBySlug = async (slugOrId: string): Promise<DeckDetail> => {
 };
 
 export default function EditDeckPage() {
+  const queryClient = useQueryClient();
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
@@ -112,6 +113,7 @@ export default function EditDeckPage() {
     try {
       await api.patch(`/decks/${deckData!.id}`, payload);
       toast.success("Deck updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["deck", slug] });
       router.push(`/decks/${deckData!.slug || slug}`);
     } catch (error: any) {
       console.error("PATCH /decks failed:", error.response?.data);
