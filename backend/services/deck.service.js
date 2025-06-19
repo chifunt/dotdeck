@@ -73,17 +73,21 @@ export const DeckService = {
 
       // --- tags
       if (payload.tags) {
-        if (payload.tags.length > 25)
-          throw new Error("Maximum 25 tags per deck");
+        if (payload.tags.length > 25) {
+          throw new createHttpError.BadRequest("Maximum 25 tags per deck");
+        }
         const tagIds = await TagService.ensureTags(payload.tags);
         await conn.query("DELETE FROM dotdeck_deck_tag WHERE deck_id = ?", [
           deckId,
         ]);
         const values = tagIds.map((id) => [deckId, id]);
-        await conn.query(
-          "INSERT IGNORE INTO dotdeck_deck_tag (deck_id, tag_id) VALUES ?",
-          [values],
-        );
+        // only run bulk‐insert if there’s at least one tag to insert
+        if (values.length) {
+          await conn.query(
+            "INSERT IGNORE INTO dotdeck_deck_tag (deck_id, tag_id) VALUES ?",
+            [values],
+          );
+        }
       }
 
       await conn.commit();
