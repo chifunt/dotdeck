@@ -9,6 +9,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AnimatedButton } from "@/components/ui/animated-button";
 
 const fetchDeckBySlug = async (slugOrId: string): Promise<DeckDetail> => {
   console.log("Fetching deck for edit by slug/ID:", slugOrId);
@@ -127,6 +128,33 @@ export default function EditDeckPage() {
     }
   };
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteDeck = async () => {
+    if (!deckData) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete this deck? This cannot be undone.",
+      )
+    ) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      await api.delete(`/decks/${deckData.id}`);
+      toast.success("Deck deleted.");
+      // Invalidate any list caches
+      queryClient.invalidateQueries({ queryKey: ["decks"] });
+      // Redirect home (or wherever you like)
+      router.push("/");
+    } catch (err: any) {
+      console.error("DELETE /decks failed:", err.response?.data);
+      toast.error(err.response?.data?.message || "Failed to delete deck.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (authLoading || isLoadingDeck) {
     return (
       <div className="py-8 max-w-3xl mx-auto space-y-6">
@@ -158,6 +186,17 @@ export default function EditDeckPage() {
 
   return (
     <div className="py-8">
+      <div className="flex justify-end mb-6 space-x-2">
+        <AnimatedButton
+          variant="destructive"
+          size="sm"
+          onClick={handleDeleteDeck}
+          disabled={isDeleting}
+          animation="bounce"
+        >
+          {isDeleting ? "Deleting…" : "Delete Deck"}
+        </AnimatedButton>
+      </div>
       <DeckForm
         initialData={deckData}
         onSubmitForm={handleEditDeck}

@@ -1,14 +1,21 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useMemo } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { api } from "@/lib/axios-instance"
-import type { Paging, Tag as TagType } from "@/types"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { AnimatedButton } from "@/components/ui/animated-button"
-import Image from "next/image"
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/axios-instance";
+import type { Paging, Tag as TagType } from "@/types";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AnimatedButton } from "@/components/ui/animated-button";
+import Image from "next/image";
 import {
   Search,
   Filter,
@@ -20,60 +27,83 @@ import {
   ChevronRight,
   Sparkles,
   ExternalLink,
-} from "lucide-react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useDebounce } from "@/hooks/use-debounce"
-import { getImageUrl } from "@/lib/get-image-url"
-import { cn } from "@/lib/utils"
-import { useRouter } from "next/navigation"
+} from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useDebounce } from "@/hooks/use-debounce";
+import { getImageUrl } from "@/lib/get-image-url";
+import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
-const ITEMS_PER_PAGE = 16
+const ITEMS_PER_PAGE = 16;
 
-const fetchDecks = async (params: { q?: string; tag?: string; limit?: number; offset?: number }): Promise<
-  Paging<any>
-> => {
-  const response = await api.get("/decks", { params })
-  if (response.data && Array.isArray(response.data.data) && response.data.paging) {
-    return response.data
+const fetchDecks = async (params: {
+  q?: string;
+  tag?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<Paging<any>> => {
+  const response = await api.get("/decks", { params });
+  if (
+    response.data &&
+    Array.isArray(response.data.data) &&
+    response.data.paging
+  ) {
+    return response.data;
   }
-  console.warn("Unexpected response structure for /decks:", response.data)
-  return { data: [], paging: { limit: params.limit || ITEMS_PER_PAGE, offset: params.offset || 0, total: 0 } }
-}
+  console.warn("Unexpected response structure for /decks:", response.data);
+  return {
+    data: [],
+    paging: {
+      limit: params.limit || ITEMS_PER_PAGE,
+      offset: params.offset || 0,
+      total: 0,
+    },
+  };
+};
 
 const fetchTags = async (): Promise<TagType[]> => {
-  const response = await api.get("/tags", { params: { all: 1 } })
+  const response = await api.get("/tags", { params: { all: 1 } });
   if (Array.isArray(response.data)) {
-    return response.data
+    return response.data;
   }
   if (response.data && Array.isArray(response.data.data)) {
-    return response.data.data
+    return response.data.data;
   }
-  console.warn("Unexpected response structure for /tags, expected an array or { data: array }.", response.data)
-  return []
-}
+  console.warn(
+    "Unexpected response structure for /tags, expected an array or { data: array }.",
+    response.data,
+  );
+  return [];
+};
 
 function DeckCard({ deck, index }: { deck: any; index: number }) {
-  const router = useRouter()
-  const [isNavigating, setIsNavigating] = useState(false)
-  const thumbnailUrl = deck.thumbnail_url || deck.thumbnailUrl
-  const authorName = deck.username || deck.author?.username || "Unknown Author"
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
+  const thumbnailUrl = deck.thumbnail_url || deck.thumbnailUrl;
+  const authorName = deck.username || deck.author?.username || "Unknown Author";
 
   // Handle tags from API response
-  const deckTags = deck.tags || []
-  const maxTagsToShow = 3
+  const deckTags = deck.tags || [];
+  const maxTagsToShow = 3;
 
   const handleCardClick = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    setIsNavigating(true)
+    e.preventDefault();
+    setIsNavigating(true);
 
     // Add a small delay to show the loading state
-    await new Promise((resolve) => setTimeout(resolve, 150))
+    await new Promise((resolve) => setTimeout(resolve, 150));
 
-    router.push(`/decks/${deck.slug}`)
-  }
+    router.push(`/decks/${deck.slug}`);
+  };
 
   return (
     <div className={cn("stagger-item", `delay-${index * 100}`)}>
@@ -134,16 +164,18 @@ function DeckCard({ deck, index }: { deck: any; index: number }) {
           {/* Tags section */}
           {deckTags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-auto flex-shrink-0">
-              {deckTags.slice(0, maxTagsToShow).map((tag: any, tagIndex: number) => (
-                <Badge
-                  key={tag.id || tag.name || tagIndex}
-                  variant="secondary"
-                  className="hover-scale transition-all duration-300 hover:bg-primary/20 text-xs px-2 py-0.5 group-hover:shadow-md group-hover:border-primary/30"
-                  style={{ animationDelay: `${tagIndex * 50}ms` }}
-                >
-                  {tag.name || tag}
-                </Badge>
-              ))}
+              {deckTags
+                .slice(0, maxTagsToShow)
+                .map((tag: any, tagIndex: number) => (
+                  <Badge
+                    key={tag.id || tag.name || tagIndex}
+                    variant="secondary"
+                    className="hover-scale transition-all duration-300 hover:bg-primary/20 text-xs px-2 py-0.5 group-hover:shadow-md group-hover:border-primary/30"
+                    style={{ animationDelay: `${tagIndex * 50}ms` }}
+                  >
+                    {tag.name || tag}
+                  </Badge>
+                ))}
               {deckTags.length > maxTagsToShow && (
                 <Badge
                   variant="outline"
@@ -177,7 +209,7 @@ function DeckCard({ deck, index }: { deck: any; index: number }) {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
 
 function PaginationControls({
@@ -186,38 +218,42 @@ function PaginationControls({
   onPageChange,
   isLoading,
 }: {
-  currentPage: number
-  totalPages: number
-  onPageChange: (page: number) => void
-  isLoading?: boolean
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  isLoading?: boolean;
 }) {
   const getVisiblePages = () => {
-    const delta = 2
-    const range = []
-    const rangeWithDots = []
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
 
-    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
-      range.push(i)
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
+      range.push(i);
     }
 
     if (currentPage - delta > 2) {
-      rangeWithDots.push(1, "...")
+      rangeWithDots.push(1, "...");
     } else {
-      rangeWithDots.push(1)
+      rangeWithDots.push(1);
     }
 
-    rangeWithDots.push(...range)
+    rangeWithDots.push(...range);
 
     if (currentPage + delta < totalPages - 1) {
-      rangeWithDots.push("...", totalPages)
+      rangeWithDots.push("...", totalPages);
     } else if (totalPages > 1) {
-      rangeWithDots.push(totalPages)
+      rangeWithDots.push(totalPages);
     }
 
-    return rangeWithDots
-  }
+    return rangeWithDots;
+  };
 
-  if (totalPages <= 1) return null
+  if (totalPages <= 1) return null;
 
   return (
     <div className="flex items-center justify-center space-x-2 mt-8 animate-fade-in">
@@ -236,14 +272,19 @@ function PaginationControls({
         {getVisiblePages().map((page, index) => (
           <div key={index}>
             {page === "..." ? (
-              <span className="px-3 py-2 text-muted-foreground animate-pulse">...</span>
+              <span className="px-3 py-2 text-muted-foreground animate-pulse">
+                ...
+              </span>
             ) : (
               <AnimatedButton
                 variant={currentPage === page ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(page as number)}
                 disabled={isLoading}
-                className={cn("min-w-[40px]", currentPage === page && "animate-glow")}
+                className={cn(
+                  "min-w-[40px]",
+                  currentPage === page && "animate-glow",
+                )}
                 animation="scale"
               >
                 {page}
@@ -264,7 +305,7 @@ function PaginationControls({
         <ChevronRight className="h-4 w-4" />
       </AnimatedButton>
     </div>
-  )
+  );
 }
 
 function AnimatedSkeleton({ className }: { className?: string }) {
@@ -275,17 +316,17 @@ function AnimatedSkeleton({ className }: { className?: string }) {
         className,
       )}
     />
-  )
+  );
 }
 
 // Create a context to share search state with navbar
 export const SearchContext = React.createContext<{
-  searchTerm: string
-  setSearchTerm: (term: string) => void
-  selectedTags: string[]
-  setSelectedTags: (tags: string[]) => void
-  handleSearch: () => void
-  isLoading: boolean
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  selectedTags: string[];
+  setSelectedTags: (tags: string[]) => void;
+  handleSearch: () => void;
+  isLoading: boolean;
 }>({
   searchTerm: "",
   setSearchTerm: () => {},
@@ -293,37 +334,38 @@ export const SearchContext = React.createContext<{
   setSelectedTags: () => {},
   handleSearch: () => {},
   isLoading: false,
-})
+});
 
-import React from "react"
+import React from "react";
 
 export default function HomePage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const queryClient = useQueryClient()
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const queryClient = useQueryClient();
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 500)
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // Refetch data when component mounts (when navigating back to homepage)
   useEffect(() => {
-    console.log("Homepage mounted - invalidating queries to fetch fresh data")
-    queryClient.invalidateQueries({ queryKey: ["decks"] })
-    queryClient.invalidateQueries({ queryKey: ["tags"] })
-  }, [queryClient])
+    console.log("Homepage mounted - invalidating queries to fetch fresh data");
+    queryClient.invalidateQueries({ queryKey: ["decks"] });
+    queryClient.invalidateQueries({ queryKey: ["tags"] });
+  }, [queryClient]);
 
   // Also refetch when the page becomes visible (browser tab focus)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log("Page became visible - refetching data")
-        queryClient.invalidateQueries({ queryKey: ["decks"] })
+        console.log("Page became visible - refetching data");
+        queryClient.invalidateQueries({ queryKey: ["decks"] });
       }
-    }
+    };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange)
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [queryClient])
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [queryClient]);
 
   const {
     data: decksData,
@@ -342,54 +384,65 @@ export default function HomePage() {
     staleTime: 0, // Always consider data stale so it refetches
     refetchOnMount: true, // Always refetch when component mounts
     refetchOnWindowFocus: true, // Refetch when window gains focus
-  })
+  });
 
-  const { data: allTags, isLoading: isLoadingTags } = useQuery<TagType[], Error>({
+  const { data: allTags, isLoading: isLoadingTags } = useQuery<
+    TagType[],
+    Error
+  >({
     queryKey: ["tags"],
     queryFn: fetchTags,
     staleTime: 5 * 60 * 1000, // Tags can be cached for 5 minutes
     refetchOnMount: true,
-  })
+  });
 
   const randomTags = useMemo(() => {
     if (!allTags || !Array.isArray(allTags)) {
-      return []
+      return [];
     }
-    return [...allTags].sort(() => 0.5 - Math.random()).slice(0, 5)
-  }, [allTags])
+    return [...allTags].sort(() => 0.5 - Math.random()).slice(0, 5);
+  }, [allTags]);
 
-  const totalPages = Math.ceil((decksData?.paging?.total || 0) / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(
+    (decksData?.paging?.total || 0) / ITEMS_PER_PAGE,
+  );
 
   const handleTagToggle = (tagName: string) => {
-    setSelectedTags((prev) => (prev.includes(tagName) ? prev.filter((t) => t !== tagName) : [...prev, tagName]))
-    setCurrentPage(1)
-  }
+    setSelectedTags((prev) =>
+      prev.includes(tagName)
+        ? prev.filter((t) => t !== tagName)
+        : [...prev, tagName],
+    );
+    setCurrentPage(1);
+  };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleSearch = () => {
-    setCurrentPage(1)
-    queryClient.invalidateQueries({ queryKey: ["decks", debouncedSearchTerm, selectedTags, 1] })
-  }
+    setCurrentPage(1);
+    queryClient.invalidateQueries({
+      queryKey: ["decks", debouncedSearchTerm, selectedTags, 1],
+    });
+  };
 
   useEffect(() => {
-    setCurrentPage(1)
-  }, [debouncedSearchTerm, selectedTags])
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, selectedTags]);
 
   const searchContextValue = {
     searchTerm,
     setSearchTerm,
     selectedTags,
     setSelectedTags: (tags: string[]) => {
-      setSelectedTags(tags)
-      setCurrentPage(1)
+      setSelectedTags(tags);
+      setCurrentPage(1);
     },
     handleSearch,
     isLoading: isLoadingDecks,
-  }
+  };
 
   return (
     <SearchContext.Provider value={searchContextValue}>
@@ -399,7 +452,9 @@ export default function HomePage() {
           <div className="fixed top-20 right-4 z-50 animate-slide-down">
             <div className="bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 flex items-center space-x-2 backdrop-blur-sm">
               <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm text-primary font-medium">Refreshing...</span>
+              <span className="text-sm text-primary font-medium">
+                Refreshing...
+              </span>
             </div>
           </div>
         )}
@@ -432,17 +487,24 @@ export default function HomePage() {
                 </SheetTrigger>
                 <SheetContent className="animate-slide-up">
                   <SheetHeader>
-                    <SheetTitle className="gradient-text">Filter by Tags</SheetTitle>
+                    <SheetTitle className="gradient-text">
+                      Filter by Tags
+                    </SheetTitle>
                   </SheetHeader>
                   <ScrollArea className="h-[calc(100vh-150px)] mt-4">
                     <div className="space-y-2">
                       {isLoadingTags &&
-                        Array.from({ length: 10 }).map((_, i) => <AnimatedSkeleton key={i} className="h-8 w-full" />)}
+                        Array.from({ length: 10 }).map((_, i) => (
+                          <AnimatedSkeleton key={i} className="h-8 w-full" />
+                        ))}
                       {Array.isArray(allTags) &&
                         allTags.map((tag, index) => (
                           <div
                             key={tag.id}
-                            className={cn("flex items-center space-x-2 stagger-item", `delay-${index * 50}`)}
+                            className={cn(
+                              "flex items-center space-x-2 stagger-item",
+                              `delay-${index * 50}`,
+                            )}
                           >
                             <Checkbox
                               id={`tag-${tag.id}`}
@@ -475,18 +537,25 @@ export default function HomePage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2 h-auto lg:h-[1.5rem] items-center">
-            <span className="text-sm text-muted-foreground mr-2 animate-fade-in">Popular tags:</span>
+            <span className="text-sm text-muted-foreground mr-2 animate-fade-in">
+              Popular tags:
+            </span>
             {isLoadingTags &&
-              Array.from({ length: 5 }).map((_, i) => <AnimatedSkeleton key={i} className="h-6 w-20 rounded-full" />)}
+              Array.from({ length: 5 }).map((_, i) => (
+                <AnimatedSkeleton key={i} className="h-6 w-20 rounded-full" />
+              ))}
             {randomTags.map((tag, index) => (
               <Badge
                 key={tag.id}
-                variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+                variant={
+                  selectedTags.includes(tag.name) ? "default" : "outline"
+                }
                 onClick={() => handleTagToggle(tag.name)}
                 className={cn(
                   "cursor-pointer hover-scale transition-all duration-200 stagger-item hover:shadow-md",
                   "hover:bg-foam/20 hover:border-foam/50 hover:text-foam",
-                  selectedTags.includes(tag.name) && "bg-rose text-white border-rose shadow-lg shadow-rose/25",
+                  selectedTags.includes(tag.name) &&
+                    "bg-rose text-white border-rose shadow-lg shadow-rose/25",
                   `delay-${index * 100}`,
                 )}
               >
@@ -503,7 +572,8 @@ export default function HomePage() {
             </h2>
             {decksData?.paging && (
               <div className="text-sm text-muted-foreground animate-slide-up">
-                Showing {Math.min(ITEMS_PER_PAGE, decksData.data.length)} of {decksData.paging.total} decks
+                Showing {Math.min(ITEMS_PER_PAGE, decksData.data.length)} of{" "}
+                {decksData.paging.total} decks
                 {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
                 {isFetchingDecks && (
                   <span className="ml-2 text-primary">
@@ -540,7 +610,9 @@ export default function HomePage() {
 
           {decksError && (
             <div className="text-center py-8 animate-fade-in">
-              <p className="text-destructive">Error loading decks: {decksError.message}</p>
+              <p className="text-destructive">
+                Error loading decks: {decksError.message}
+              </p>
             </div>
           )}
 
@@ -551,14 +623,18 @@ export default function HomePage() {
             decksData.data.length === 0 && (
               <div className="text-center py-12 animate-fade-in">
                 <Settings className="h-16 w-16 text-muted-foreground mx-auto mb-4 animate-float" />
-                <p className="text-lg text-muted-foreground">No decks found. Try adjusting your search or filters.</p>
+                <p className="text-lg text-muted-foreground">
+                  No decks found. Try adjusting your search or filters.
+                </p>
               </div>
             )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {decksData &&
               Array.isArray(decksData.data) &&
-              decksData.data.map((deck, index) => <DeckCard key={deck.id} deck={deck} index={index} />)}
+              decksData.data.map((deck, index) => (
+                <DeckCard key={deck.id} deck={deck} index={index} />
+              ))}
           </div>
 
           <PaginationControls
@@ -570,5 +646,5 @@ export default function HomePage() {
         </section>
       </div>
     </SearchContext.Provider>
-  )
+  );
 }
