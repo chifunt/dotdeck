@@ -400,8 +400,14 @@ export default function DeckDetailPage() {
   console.log("Author info:", { authorName, authorUsername });
   console.log("Deck tags:", deckTags);
 
-  // For edit authorization, compare with user_id
-  const isAuthor = user?.id === deck.user_id;
+  // For edit authorization, grab the author’s ID (from slug or detail) and compare
+  const authorId = deck.author?.id ?? deck.userId;
+  console.log("DEBUG authorId:", authorId, "currentUserId:", user?.id);
+  const isAuthor = Boolean(
+    user && // must be logged in
+      authorId && // we actually found an author ID
+      user.id === authorId,
+  );
 
   // Current vote helpers - matching your working example
   // not authenticated → treat as no vote and block click-through
