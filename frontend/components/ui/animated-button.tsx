@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { Button, type ButtonProps } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { LoadingSpinner } from "./loading-spinner"
+import { Button, type ButtonProps } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { LoadingSpinner } from "./loading-spinner";
 
 interface AnimatedButtonProps extends ButtonProps {
-  loading?: boolean
-  loadingText?: string
-  animation?: "bounce" | "pulse" | "glow" | "scale"
+  loading?: boolean;
+  loadingText?: string;
+  animation?: "bounce" | "pulse" | "glow" | "scale";
 }
 
 export function AnimatedButton({
@@ -24,7 +24,7 @@ export function AnimatedButton({
     pulse: "hover:animate-pulse",
     glow: "hover-glow",
     scale: "hover-scale transition-all duration-200",
-  }
+  };
 
   return (
     <Button
@@ -42,7 +42,13 @@ export function AnimatedButton({
           <LoadingSpinner size="sm" text={loadingText} />
         </div>
       )}
-      <span className={cn(loading && "opacity-0")}>{children}</span>
+
+      {/* Make children sit horizontally */}
+      <span
+        className={cn("inline-flex items-center gap-2", loading && "opacity-0")}
+      >
+        {children}
+      </span>
     </Button>
-  )
+  );
 }
