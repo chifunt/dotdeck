@@ -6,6 +6,7 @@ import slugify from "slugify";
 import { db } from "../config/db.js";
 import { DeckModel } from "../models/deck.model.js";
 import { TagService } from "./tag.service.js";
+import createHttpError from "http-errors";
 
 export const DeckService = {
   /**
@@ -114,6 +115,15 @@ export const DeckService = {
           slug = `${slugBase}-${i}`;
         }
         payload.slug = slug; // pass to model.update
+      }
+
+      // do the scalar update, capture whether it actually ran
+      const didUpdate = await DeckModel.update(deckId, userId, payload, conn);
+      if (!didUpdate) {
+        // no rows matched deckId+userId → not the owner
+        throw new createHttpError.Forbidden(
+          "You’re not allowed to update this deck",
+        );
       }
 
       await DeckModel.update(deckId, userId, payload, conn);

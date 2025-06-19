@@ -5,6 +5,7 @@
 import { DeckModel } from "../models/deck.model.js";
 import { DeckService } from "../services/deck.service.js";
 import { TagModel } from "../models/tag.model.js";
+import createHttpError from "http-errors";
 
 export const DeckController = {
   list: async (req, res, next) => {
@@ -100,6 +101,9 @@ export const DeckController = {
       await DeckService.update(req.params.id, req.user.id, req.body);
       res.status(204).end();
     } catch (err) {
+      if (createHttpError.isHttpError(err) && err.status === 403) {
+        return res.status(403).json({ message: err.message });
+      }
       next(err);
     }
   },
