@@ -56,7 +56,7 @@ export function DeckForm({
           thumbnailUrl: initialData.thumbnailUrl || "",
           tags: initialData.tags?.map((tag) => tag.name) || [],
           snippets: initialData.snippets.map((s) => ({
-            language: s.language,
+            language: s.language ?? "",
             code: s.code,
             caption: s.caption || "",
           })),
@@ -80,41 +80,42 @@ export function DeckForm({
   const onDropThumbnail = useCallback(
     async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
-      if (file) {
-        setIsUploadingThumbnail(true);
+      if (!file) return;
+
+      setIsUploadingThumbnail(true);
+
+      try {
         const formData = new FormData();
         formData.append("image", file);
-        try {
-          const response = await api.post<{ url: string }>(
-            "/decks/thumbnail",
-            formData,
-            {
-              headers: { "Content-Type": "multipart/form-data" },
-            },
-          );
-          const serverPath = response.data.url; // e.g., /uploads/image.webp
-          form.setValue("thumbnailUrl", serverPath, { shouldValidate: true });
-          setThumbnailPreview(URL.createObjectURL(file)); // Local preview
-          toast.success("Thumbnail uploaded!");
-        } catch (error) {
-          toast.error("Thumbnail upload failed.");
-          console.error(error);
-        } finally {
-          setIsUploadingThumbnail(false);
-        }
+
+        // 🔧 1.  let axios set the header + boundary
+        const { data } = await api.post<{ url: string }>(
+          "/decks/thumbnail",
+          formData,
+        );
+
+        // 🔧 3.  make sure the field name matches your API
+        form.setValue("thumbnailUrl", data.url, { shouldValidate: true });
+
+        // 🔧 2.  show local preview without getImageUrl
+        setThumbnailPreview(URL.createObjectURL(file));
+
+        toast.success("Thumbnail uploaded!");
+      } catch (err) {
+        console.error(err);
+        toast.error("Thumbnail upload failed.");
+      } finally {
+        setIsUploadingThumbnail(false);
       }
     },
     [form],
   );
 
-  const {
-    getRootProps: getThumbnailRootProps,
-    getInputProps: getThumbnailInputProps,
-    isDragActive: isThumbnailDragActive,
-  } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: onDropThumbnail,
     accept: { "image/*": [".jpeg", ".png", ".webp", ".jpg"] },
     maxFiles: 1,
+    noKeyboard: true, // keep keyboard disabled if you like
   });
 
   const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -215,17 +216,25 @@ export function DeckForm({
                 <FormItem>
                   <FormLabel>Thumbnail (Optional)</FormLabel>
                   <FormControl>
+                    {/* the entire div is now the button */}
                     <div
-                      {...getThumbnailRootProps()}
-                      className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md cursor-pointer
-                  ${isThumbnailDragActive ? "border-primary" : "border-border"}`}
+                      {...getRootProps()}
+                      className={`
+           mt-1 flex justify-center px-6 pt-5 pb-6 cursor-pointer rounded-md
+           border-2 border-dashed
+           ${isDragActive ? "border-primary" : "border-border"}
+         `}
                     >
+                      {/* 👇 hidden input must be a direct child of the root */}
+                      <input {...getInputProps()} className="sr-only" />
                       <div className="space-y-1 text-center">
                         {thumbnailPreview ? (
                           <Image
                             src={
-                              getImageUrl(thumbnailPreview) ||
-                              "/placeholder.svg"
+                              thumbnailPreview?.startsWith("blob:")
+                                ? thumbnailPreview // local object URL
+                                : getImageUrl(thumbnailPreview) ||
+                                  "/placeholder.svg"
                             }
                             alt="Thumbnail preview"
                             width={200}
@@ -236,20 +245,9 @@ export function DeckForm({
                         ) : (
                           <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
                         )}
-                        <div className="flex text-sm text-muted-foreground">
-                          <label
-                            htmlFor="thumbnail-upload"
-                            className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary"
-                          >
-                            <span>Upload a file</span>
-                            <input
-                              {...getThumbnailInputProps()}
-                              id="thumbnail-upload"
-                              className="sr-only"
-                            />
-                          </label>
-                          <p className="pl-1">or drag and drop</p>
-                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Click or drag &amp; drop
+                        </p>
                         {isUploadingThumbnail && (
                           <p className="text-xs text-primary">Uploading...</p>
                         )}
