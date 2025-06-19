@@ -4,12 +4,15 @@
  * Exposes `req.file` with updated { filename, path, mimetype, size }.
  */
 
+import express from "express";
 import multer from "multer";
 import sharp from "sharp";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
 import createHttpError from "http-errors";
+
+const app = express();
 
 // ─────────────────────────────────────────
 // Config
