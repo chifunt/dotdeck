@@ -92,8 +92,9 @@ export default function EditDeckPage() {
     };
 
     // 2️⃣ Only include thumbnailUrl if it looks like a real URL
-    if (data.thumbnailUrl?.startsWith("http")) {
-      payload.thumbnailUrl = data.thumbnailUrl;
+    if (data.thumbnailUrl?.trim()) {
+      // include any non-empty thumbnailUrl (absolute or relative)
+      payload.thumbnailUrl = data.thumbnailUrl.trim();
     }
 
     // 3️⃣ Convert any tag objects into strings (the API expects string[])
