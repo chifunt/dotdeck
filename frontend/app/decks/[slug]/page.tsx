@@ -467,7 +467,7 @@ export default function DeckDetailPage() {
         <AnimatedButton
           variant="ghost"
           size="sm"
-          onClick={() => router.back()}
+          onClick={() => router.push("/")}
           className="mb-4 hover:bg-primary/10"
           animation="scale"
         >
