@@ -82,13 +82,13 @@ export const TagModel = {
    * @returns {Promise<number>} tagId
    */
   async createUnofficial(name, conn = db) {
-      const [r] = await conn.query(
-        "INSERT IGNORE INTO dotdeck_tag (name, is_official, tag_type) VALUES (?,0,NULL)",
-        [name],
-      );
-      if (r.insertId) return r.insertId; // brand-new
-      const tag = await this.findByName(name, conn); // already existed
-      return tag.id;
+    // Resolve a duplicate name without suppressing validation/storage errors.
+    const [result] = await conn.query(
+      `INSERT INTO dotdeck_tag (name, is_official, tag_type) VALUES (?,0,NULL)
+       ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)`,
+      [name],
+    );
+    return result.insertId;
   },
 
   /** Mark tag as official (admin). */
