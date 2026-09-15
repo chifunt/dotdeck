@@ -12,27 +12,27 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedButton } from "@/components/ui/animated-button";
 
 const fetchDeckBySlug = async (slugOrId: string): Promise<DeckDetail> => {
-  console.log("Fetching deck for edit by slug/ID:", slugOrId);
+
 
   // Try slug first
   try {
-    console.log("Trying slug endpoint:", `/decks/slug/${slugOrId}`);
+
     const response = await api.get(`/decks/slug/${slugOrId}`);
-    console.log("Slug response data:", response.data);
+
 
     if (response.data) {
       return response.data;
     }
     throw new Error("No valid deck data in slug response");
   } catch (slugError: any) {
-    console.log("Slug lookup failed:", slugError.message);
+
 
     // If slug fails and the parameter looks like an ID (numeric), try the ID endpoint
     if (/^\d+$/.test(slugOrId)) {
-      console.log("Trying ID endpoint:", `/decks/${slugOrId}`);
+
       try {
         const response = await api.get(`/decks/${slugOrId}`);
-        console.log("ID response data:", response.data);
+
 
         if (response.data) {
           return response.data;

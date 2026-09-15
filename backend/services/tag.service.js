@@ -13,11 +13,11 @@ export const TagService = {
    * Ensure all submitted tag names exist, creating unofficial ones as needed.
    * Returns an array of tag IDs.
    */
-  async ensureTags(names) {
+  async ensureTags(names, conn) {
     const ids = [];
     for (const name of names) {
-      const existing = await TagModel.findByName(name);
-      ids.push(existing ? existing.id : await TagModel.createUnofficial(name));
+      const existing = await TagModel.findByName(name, conn);
+      ids.push(existing ? existing.id : await TagModel.createUnofficial(name, conn));
     }
     return ids;
   },

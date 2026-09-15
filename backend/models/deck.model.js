@@ -133,6 +133,14 @@ export const DeckModel = {
     return r.affectedRows === 1;
   },
 
+  async lockOwned(id, userId, conn = db) {
+    const [[row]] = await conn.query(
+      "SELECT id FROM dotdeck_deck WHERE id = ? AND user_id = ? AND deleted_at IS NULL FOR UPDATE",
+      [id, userId],
+    );
+    return Boolean(row);
+  },
+
   async update(id, userId, fields, conn = db) {
     const sets = [];
     const vals = [];
@@ -140,11 +148,11 @@ export const DeckModel = {
       sets.push("title = ?");
       vals.push(fields.title);
     }
-    if (fields.description) {
+    if (fields.description !== undefined) {
       sets.push("description = ?");
       vals.push(fields.description);
     }
-    if (fields.thumbnailUrl) {
+    if (fields.thumbnailUrl !== undefined) {
       sets.push("thumbnail_url = ?");
       vals.push(fields.thumbnailUrl);
     }
@@ -152,21 +160,18 @@ export const DeckModel = {
       sets.push("slug = ?");
       vals.push(fields.slug);
     }
-    if (fields.snippets) {
-      /* handled in service ↓ */
-    }
-
-    if (!sets.length && !fields.snippets) return false;
+    if (!sets.length) return false;
 
     if (sets.length) {
       vals.push(id, userId);
-      await conn.query(
+      const [result] = await conn.query(
         `UPDATE dotdeck_deck SET ${sets.join(", ")}, updated_at = NOW()
          WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
         vals,
       );
+      return result.affectedRows === 1;
     }
-    return true;
+    return false;
   },
 
   async softDelete(id, userId) {

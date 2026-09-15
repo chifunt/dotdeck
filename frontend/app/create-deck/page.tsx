@@ -28,14 +28,14 @@ export default function CreateDeckPage() {
     }
 
     setIsSubmitting(true)
-    console.log("Creating deck with data:", data)
+
 
     try {
       // Step 1: Create the deck
-      console.log("Sending POST request to /decks...")
+
       const createResponse = await api.post("/decks", data)
-      console.log("Create response:", createResponse)
-      console.log("Create response data:", createResponse.data)
+
+
 
       // Handle different possible response formats
       let newDeckId: number | undefined
@@ -49,7 +49,7 @@ export default function CreateDeckPage() {
         }
       }
 
-      console.log("Extracted:", { id: newDeckId, slug: newDeckSlug })
+
 
       if (!newDeckId) {
         console.error("No deck ID found in create response")
@@ -61,17 +61,17 @@ export default function CreateDeckPage() {
 
       // If we got a slug directly from creation, use it
       if (newDeckSlug) {
-        console.log("Using slug from create response:", newDeckSlug)
+
         router.push(`/decks/${newDeckSlug}`)
         return
       }
 
       // Step 2: Fetch the deck by ID to get the slug
-      console.log("Fetching deck details by ID:", newDeckId)
+
       try {
         const detailResponse = await api.get(`/decks/${newDeckId}`)
-        console.log("Detail response:", detailResponse)
-        console.log("Detail response data:", detailResponse.data)
+
+
 
         let newDeck: DeckDetailType | undefined
 
@@ -84,13 +84,13 @@ export default function CreateDeckPage() {
           }
         }
 
-        console.log("Extracted deck:", newDeck)
+
 
         if (newDeck && newDeck.slug) {
-          console.log("Using slug from detail response:", newDeck.slug)
+
           router.push(`/decks/${newDeck.slug}`)
         } else if (newDeck && newDeck.id) {
-          console.log("No slug found, using ID:", newDeck.id)
+
           router.push(`/decks/${newDeck.id}`)
         } else {
           console.error("No valid deck data found in detail response")

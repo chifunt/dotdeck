@@ -32,27 +32,27 @@ import { AnimatedButton } from "@/components/ui/animated-button";
 import { Trash } from "lucide-react";
 
 const fetchDeckBySlug = async (slugOrId: string): Promise<any> => {
-  console.log("Fetching deck by slug/ID:", slugOrId);
+
 
   // Try slug first
   try {
-    console.log("Trying slug endpoint:", `/decks/slug/${slugOrId}`);
+
     const response = await api.get(`/decks/slug/${slugOrId}`);
-    console.log("Slug response data:", response.data);
+
 
     if (response.data) {
       return response.data;
     }
     throw new Error("No valid deck data in slug response");
   } catch (slugError: any) {
-    console.log("Slug lookup failed:", slugError.message);
+
 
     // If slug fails and the parameter looks like an ID (numeric), try the ID endpoint
     if (/^\d+$/.test(slugOrId)) {
-      console.log("Trying ID endpoint:", `/decks/${slugOrId}`);
+
       try {
         const response = await api.get(`/decks/${slugOrId}`);
-        console.log("ID response data:", response.data);
+
 
         if (response.data) {
           return response.data;
@@ -69,7 +69,7 @@ const fetchDeckBySlug = async (slugOrId: string): Promise<any> => {
 
 const fetchDeckComments = async (deckId: number): Promise<any> => {
   const response = await api.get(`/decks/${deckId}/comments`);
-  console.log("Comments response data:", response.data);
+
   return response.data;
 };
 
@@ -120,14 +120,7 @@ const getAuthorInfo = (deck: any) => {
     authorUsername = deck.owner.username;
   }
 
-  console.log("Author extraction debug:", {
-    deck_author: deck.author,
-    deck_username: deck.username,
-    deck_user: deck.user,
-    deck_owner: deck.owner,
-    extracted_name: authorName,
-    extracted_username: authorUsername,
-  });
+
 
   return { authorName, authorUsername };
 };
@@ -255,7 +248,7 @@ function ThumbnailDisplay({
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
-  console.log("Thumbnail URL:", thumbnailUrl);
+
 
   // For local development, construct the proper URL
   const fullImageUrl = getImageUrl(thumbnailUrl);
@@ -294,7 +287,7 @@ function ThumbnailDisplay({
           setImageLoading(false);
         }}
         onLoad={() => {
-          console.log("Image loaded successfully:", fullImageUrl);
+
           setImageLoading(false);
         }}
       />
@@ -438,14 +431,14 @@ export default function DeckDetailPage() {
   const maxTagsToShow = 8; // Show more tags on detail page
 
   // Debug logging
-  console.log("Full deck object:", deck);
-  console.log("Ratings data:", ratings);
-  console.log("Author info:", { authorName, authorUsername });
-  console.log("Deck tags:", deckTags);
+
+
+
+
 
   // For edit authorization, grab the author’s ID (from slug or detail) and compare
   const authorId = deck.author?.id ?? deck.userId;
-  console.log("DEBUG authorId:", authorId, "currentUserId:", user?.id);
+
   const isAuthor = Boolean(
     user && // must be logged in
       authorId && // we actually found an author ID
@@ -551,9 +544,6 @@ export default function DeckDetailPage() {
           <div className="text-center py-8">
             <p className="text-muted-foreground">
               No snippets available for this deck.
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Debug: snippets = {JSON.stringify(snippets)}
             </p>
           </div>
         )}

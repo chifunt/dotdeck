@@ -81,7 +81,7 @@ const fetchDecks = async (params: { limit?: number; offset?: number }): Promise<
           title: "React TypeScript Starter",
           slug: "react-typescript-starter",
           description: "A modern React setup with TypeScript and Vite",
-          thumbnailUrl: null,
+          thumbnailUrl: undefined,
           createdAt: "2024-01-14T14:20:00Z",
           author: { id: 2, username: "jane_admin", email: "jane@example.com" },
           tags: [
@@ -97,7 +97,7 @@ const fetchDecks = async (params: { limit?: number; offset?: number }): Promise<
           title: "Deck with Missing Author",
           slug: "missing-author-deck",
           description: "This deck has no author data",
-          thumbnailUrl: null,
+          thumbnailUrl: undefined,
           createdAt: "2024-01-13T09:00:00Z",
           author: { id: 0, username: "", email: "" },
           tags: [],

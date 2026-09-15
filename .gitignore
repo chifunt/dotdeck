@@ -2,6 +2,14 @@
 **/.vscode/
 **/*.swp
 **/.env
+**/.env.*
+!**/.env.example
+**/*.pem
+**/*.p12
+.security-audit/
+**/.next/
+**/node_modules/
+**/*.tsbuildinfo
 **/.DS_Store
 
 **/node_modules/
@@ -9,3 +17,7 @@
 **/yarn-debug.log
 **/yarn-error.log
 **/pnpm-debug.logackend/node_modules
+
+# Runtime uploads stay local; documentation images live in docs/images.
+backend/uploads/*
+!backend/uploads/.gitkeep

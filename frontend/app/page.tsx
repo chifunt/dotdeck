@@ -98,9 +98,6 @@ function DeckCard({ deck, index }: { deck: any; index: number }) {
       replace
     >
       <Card
-        as="a"
-        role="link"
-        tabIndex={0}
         className="flex flex-col h-[400px] hover-lift group transition-all duration-300 hover:border-primary/50 relative overflow-hidden"
       >
         {/* Hover effect overlay */}

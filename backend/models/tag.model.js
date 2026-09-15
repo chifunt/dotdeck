@@ -68,8 +68,8 @@ export const TagModel = {
    * Fetch by exact name.
    * @param {string} name
    */
-  async findByName(name) {
-    const [[row]] = await db.query(
+  async findByName(name, conn = db) {
+    const [[row]] = await conn.query(
       "SELECT * FROM dotdeck_tag WHERE name = ? LIMIT 1",
       [name],
     );
@@ -81,19 +81,14 @@ export const TagModel = {
    * @param {string} name
    * @returns {Promise<number>} tagId
    */
-  async createUnofficial(name) {
-    try {
-      const [r] = await db.query(
+  async createUnofficial(name, conn = db) {
+      const [r] = await conn.query(
         "INSERT IGNORE INTO dotdeck_tag (name, is_official, tag_type) VALUES (?,0,NULL)",
         [name],
       );
       if (r.insertId) return r.insertId; // brand-new
-      const tag = await this.findByName(name); // already existed
+      const tag = await this.findByName(name, conn); // already existed
       return tag.id;
-    } catch (e) {
-      const tag = await this.findByName(name);
-      return tag?.id;
-    }
   },
 
   /** Mark tag as official (admin). */

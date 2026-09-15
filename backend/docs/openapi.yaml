@@ -1049,7 +1049,7 @@ components:
 
     AuthSuccess:
       value:
-        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aaa.bbb
+        token: EXAMPLE_ACCESS_TOKEN
         user: { id: 1, username: johndoe, email: john@example.com }
 
     DeckCreate:

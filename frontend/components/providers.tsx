@@ -14,9 +14,11 @@ export function Providers({ children }: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           {children}
-          <Toaster richColors />
+          <Toaster />
         </AuthProvider>
-        <ReactQueryDevtools initialIsOpen={false} />
+        {process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_DEMO_MODE !== "1" && (
+          <ReactQueryDevtools initialIsOpen={false} />
+        )}
       </QueryClientProvider>
     </NextThemesProvider>
   )

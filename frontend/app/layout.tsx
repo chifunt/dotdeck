@@ -24,8 +24,7 @@ const chiosevka = localFont({
 
 export const metadata: Metadata = {
   title: "Dotdeck - Config Snippets & Dotfile Explorer",
-  description: "Discover and share your favorite development configurations.",
-    generator: 'v0.dev'
+  description: "Share configuration snippets with their explanations and discuss how they work.",
 }
 
 export default function RootLayout({
@@ -39,6 +38,7 @@ export default function RootLayout({
         <Providers>
           <div className="flex flex-col min-h-screen">
             <Navbar />
+            {process.env.NEXT_PUBLIC_DEMO_MODE === "1" && <p className="border-b bg-muted/50 px-4 py-2 text-center text-sm text-muted-foreground">Local Demo · Sample Decks · Read-Only</p>}
             <main className="flex-grow container mx-auto px-4 py-8">{children}</main>
             <footer className="py-4 text-center text-sm text-muted-foreground border-t">
               © {new Date().getFullYear()} Dotdeck. All rights reserved.

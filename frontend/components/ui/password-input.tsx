@@ -1,13 +1,11 @@
 "use client"
 
 import React, { useState } from "react"
-import { Input, type InputProps } from "@/components/ui/input"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Eye, EyeOff } from "lucide-react"
 
-interface PasswordInputProps extends InputProps {
-  // No custom props needed for now, but can be extended
-}
+type PasswordInputProps = React.ComponentProps<typeof Input>
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({ className, ...props }, ref) => {
   const [showPassword, setShowPassword] = useState(false)

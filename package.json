@@ -1,0 +1,11 @@
+{
+  "name": "dotdeck",
+  "private": true,
+  "scripts": {
+    "demo": "node scripts/demo.mjs",
+    "test": "npm test --prefix backend",
+    "typecheck": "npm run typecheck --prefix frontend",
+    "build": "npm run build --prefix frontend"
+  },
+  "engines": { "node": ">=22.13.0" }
+}
